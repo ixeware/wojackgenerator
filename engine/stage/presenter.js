@@ -25,8 +25,7 @@ export function makePresenter(A, rig) {
       drawArm(ctx, base, sign, scale, point, easeOut(clamp(pointK, 0, 1)), z);
     }
     // body + head
-    ctx.imgMatrix('pres-body', rig.body, base, { w: rig.size[0], h: rig.size[1], z: z + 1,
-      filter: 'drop-shadow(0 18px 20px rgba(22,24,29,.28))' });
+    ctx.imgMatrix('pres-body', rig.body, base, { w: rig.size[0], h: rig.size[1], z: z + 1 });
     // lip-synced mouth, drawn in sprite space
     drawMouth(ctx, base, mouthState, z + 2);
   };
@@ -41,7 +40,8 @@ export function makePresenter(A, rig) {
     const ang = Math.atan2(dy, dx);
     const ux = dx / dist, uy = dy / dist;
     const fLen = fingerLen * scale;
-    const minFore = 90 * scale, maxFore = foreRest * scale * 2.4;
+    // meme-stretchy: the forearm can grow far enough to tap anything on screen
+    const minFore = 90 * scale, maxFore = Math.max(foreRest * scale * 2.4, 1400);
     const fore = clamp(dist - fLen, minFore, maxFore);
     const wrist = [sh[0] + ux * fore, sh[1] + uy * fore];
     if (!Number.isFinite(wrist[0]) || !Number.isFinite(wrist[1])) return;
@@ -53,7 +53,7 @@ export function makePresenter(A, rig) {
       L${r1(wrist[0] + nx * hw1)} ${r1(wrist[1] + ny * hw1)}
       L${r1(wrist[0] - nx * hw1)} ${r1(wrist[1] - ny * hw1)}
       L${r1(sh[0] - nx * hw0)} ${r1(sh[1] - ny * hw0)} Z`;
-    ctx.svg('over', `<path d="${quad(w0 / 2 + ow, w1 / 2 + ow)}" fill="var(--ink)"/>
+    ctx.armSvg(`<path d="${quad(w0 / 2 + ow, w1 / 2 + ow)}" fill="var(--ink)"/>
       <path d="${quad(w0 / 2, w1 / 2)}" fill="#fff"/>
       <circle cx="${r1(sh[0])}" cy="${r1(sh[1])}" r="${r1(w0 / 2 + ow)}" fill="var(--ink)"/>
       <circle cx="${r1(sh[0])}" cy="${r1(sh[1])}" r="${r1(w0 / 2)}" fill="#fff"/>`);
@@ -61,8 +61,7 @@ export function makePresenter(A, rig) {
     // hand sprite: rotate its own axis onto `ang`, map its wrist point onto `wrist`
     const hand = { file: rig.hand, w: rig.handSize[0], h: rig.handSize[1] };
     const hm = chain(M.t(wrist[0], wrist[1]), M.r(ang - handAng0), M.s(scale, scale), M.t(-(WR[0] - HO[0]), -(WR[1] - HO[1])));
-    ctx.imgMatrix('pres-hand', hand.file, hm, { w: hand.w, h: hand.h, z: z + 3,
-      filter: 'drop-shadow(0 10px 10px rgba(22,24,29,.22))' });
+    ctx.imgMatrix('pres-hand', hand.file, hm, { w: hand.w, h: hand.h, z: z + 3 });
 
     // expose live fingertip for a tap pulse
     ctx.anchor('presenter.finger', wrist[0] + ux * fLen, wrist[1] + uy * fLen);

@@ -52,7 +52,16 @@ if (cmd === 'voice') {
 } else if (cmd === 'preview') {
   const { assets, timeline } = await prepare(episodePath);
   await mkdir(join(ROOT, 'dist'), { recursive: true });
-  const times = process.argv.slice(4).map(Number).filter(x => !isNaN(x));
+  // times: seconds, or m:<mark>[+/-offset] to look at a specific beat
+  const times = process.argv.slice(4).map(a => {
+    const m = /^m:([\w']+)([+-][\d.]+)?$/.exec(a);
+    if (m) {
+      const base = timeline.marks[m[1]];
+      if (base == null) throw new Error(`unknown mark ${m[1]}`);
+      return base + (m[2] ? parseFloat(m[2]) : 0);
+    }
+    return Number(a);
+  }).filter(x => !isNaN(x));
   const T = times.length ? times : timeline.shots.map(s => s.start + Math.min(1.2, (s.end - s.start) / 2));
   const out = join(ROOT, 'dist', 'preview.jpg');
   await contact(timeline, assets, { times: T, out, cols: Math.min(5, T.length) });

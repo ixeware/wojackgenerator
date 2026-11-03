@@ -8,17 +8,7 @@
       "strength": "200 mg",
       "ndc": "50844029108",
       "source": "NLM C3PI (public domain)",
-      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc107/images/X!-L2E4EVGG8WNIJ48TEKB-JA!4TQV.PNG"
-    },
-    "ibuprofen400": {
-      "file": "pills/ibuprofen400.png",
-      "w": 720,
-      "h": 713,
-      "label": "Ibuprofen",
-      "strength": "400 mg",
-      "ndc": "53746046405",
-      "source": "NLM C3PI (public domain)",
-      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc12/images/8!TD7OSG-MU7KGO0!8XWB9E5NLXG8H.PNG"
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc107/images/X_-L2E4EVGG8WNIJ48TEKB-JA_4TQV.PNG"
     },
     "aspirin": {
       "file": "pills/aspirin.png",
@@ -28,7 +18,7 @@
       "strength": "325 mg",
       "ndc": "00536308610",
       "source": "NLM C3PI (public domain)",
-      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc107/images/XTP-CFCS4ARHM46DL4B!D7RHBPQPC!.PNG"
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc107/images/XTP-CFCS4ARHM46DL4B_D7RHBPQPC!.PNG"
     },
     "naproxen": {
       "file": "pills/naproxen.png",
@@ -38,7 +28,7 @@
       "strength": "500 mg",
       "ndc": "00093014701",
       "source": "NLM C3PI (public domain)",
-      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc100/images/RN!3QUD7YQHLF8L5RO3LVJ!D1PMGZ7.PNG"
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc100/images/RN!3QUD7YQHLF8L5RO3LVJ_D1PMGZ7.PNG"
     },
     "celecoxib": {
       "file": "pills/celecoxib.png",
@@ -78,7 +68,7 @@
       "strength": "10 mg",
       "ndc": "00093031401",
       "source": "NLM C3PI (public domain)",
-      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc107/images/XDYIKARS6FBEIYA67UWPAY!PCCUGC9.PNG"
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc107/images/XDYIKARS6FBEIYA67UWPAY_PCCUGC9.PNG"
     },
     "diclofenac": {
       "file": "pills/diclofenac.png",
@@ -88,7 +78,7 @@
       "strength": "75 mg",
       "ndc": "00228255006",
       "source": "NLM C3PI (public domain)",
-      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc110/images/!P73WU5I4P0OHEWNH240QJ!VWHVQ5N.PNG"
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc110/images/_P73WU5I4P0OHEWNH240QJ!VWHVQ5N.PNG"
     },
     "piroxicam": {
       "file": "pills/piroxicam.png",
@@ -185,13 +175,6 @@
       "h": 514,
       "source": "Wojak Land",
       "url": "https://wojakland.com/animals · rabbit_groomer.png"
-    },
-    "rooster": {
-      "file": "wojaks/rooster.png",
-      "w": 578,
-      "h": 740,
-      "source": "Wojak Land",
-      "url": "https://wojakland.com/animals · rooster_cahd.png"
     },
     "hand-point": {
       "file": "wojaks/hand-point.png",

@@ -147,7 +147,8 @@ export function makeResolver(words, duration) {
     const [, word, nth, useEnd, sign, delta] = m;
     const hits = index.get(normWord(word));
     if (!hits || !hits.length) throw new Error(`Anchor word not found in narration: "${word}"`);
-    const w = words[hits[Math.min((nth ? +nth : 1) - 1, hits.length - 1)]];
+    if (nth && +nth > hits.length) throw new Error(`Anchor "${anchor}": "${word}" occurs only ${hits.length}×`);
+    const w = words[hits[(nth ? +nth : 1) - 1]];
     let t = useEnd ? w.end : w.start;
     if (sign) t += (sign === '-' ? -1 : 1) * parseFloat(delta);
     return Math.max(0, Math.min(duration, t));
@@ -158,14 +159,24 @@ export function makeResolver(words, duration) {
 export function buildTimeline(episode, blocks) {
   let words = [];
   let offset = 0;
+  // Each block's audio is placed at the same offset its words get here, so
+  // audio and word times can never drift apart (see audio.mjs).
+  const blockOffsets = [];
   for (const b of blocks) {
+    blockOffsets.push(offset);
     const bw = wordsFromAlignment(b.alignment, offset);
     const last = bw[bw.length - 1];
     words.push(...bw);
     offset = (last ? last.end : offset) + (episode.voice.blockGap ?? 0.18);
   }
   const tightCfg = episode.voice.tighten ?? {};
-  const { words: tw, segments, duration } = tighten(words, tightCfg);
+  const tight = tighten(words, tightCfg);
+  // Optional pitch-preserving speed-up applied to the finished narration
+  // (ffmpeg atempo); every timestamp is scaled to match.
+  const tempo = episode.voice.tempo ?? 1;
+  const tw = tight.words.map(w => ({ ...w, start: w.start / tempo, end: w.end / tempo }));
+  const segments = tight.segments;
+  const duration = tight.duration / tempo;
   const resolve = makeResolver(tw, duration);
 
   const shots = episode.shots.map((s, i) => ({ ...s, start: resolve(s.at, 0) }));
@@ -190,6 +201,9 @@ export function buildTimeline(episode, blocks) {
     voice: episode.voice,
     words: tw,
     segments,
+    blockOffsets,
+    tempo,
+    sourceDuration: tight.duration,
     duration,
     captions: captionGroups(tokens, episode.captions ?? {}),
     shots, cues, points, marks,

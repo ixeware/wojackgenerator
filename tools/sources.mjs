@@ -9,13 +9,11 @@ export const NLM_PILLS = 'https://data.lhncbc.nlm.nih.gov/public/Pills/';
 // background-removed reference photographs of a specific NDC product.
 export const pills = [
   { id: 'ibuprofen',    label: 'Ibuprofen',    strength: '200 mg', ndc: '50844029108',
-    path: 'PillProjectDisc107/images/X!-L2E4EVGG8WNIJ48TEKB-JA!4TQV.PNG' },
-  { id: 'ibuprofen400', label: 'Ibuprofen',    strength: '400 mg', ndc: '53746046405',
-    path: 'PillProjectDisc12/images/8!TD7OSG-MU7KGO0!8XWB9E5NLXG8H.PNG' },
+    path: 'PillProjectDisc107/images/X_-L2E4EVGG8WNIJ48TEKB-JA_4TQV.PNG' },
   { id: 'aspirin',      label: 'Aspirin',      strength: '325 mg', ndc: '00536308610',
-    path: 'PillProjectDisc107/images/XTP-CFCS4ARHM46DL4B!D7RHBPQPC!.PNG' },
+    path: 'PillProjectDisc107/images/XTP-CFCS4ARHM46DL4B_D7RHBPQPC!.PNG' },
   { id: 'naproxen',     label: 'Naproxen',     strength: '500 mg', ndc: '00093014701',
-    path: 'PillProjectDisc100/images/RN!3QUD7YQHLF8L5RO3LVJ!D1PMGZ7.PNG' },
+    path: 'PillProjectDisc100/images/RN!3QUD7YQHLF8L5RO3LVJ_D1PMGZ7.PNG' },
   { id: 'celecoxib',    label: 'Celecoxib',    strength: '100 mg', ndc: '00025152031',
     path: 'PillProjectDisc107/images/X6YCBP9ZRBPNNE3R!O54AESEWM01HB.PNG' },
   { id: 'flurbiprofen', label: 'Flurbiprofen', strength: '100 mg', ndc: '00093071101',
@@ -23,9 +21,9 @@ export const pills = [
   { id: 'indomethacin', label: 'Indomethacin', strength: '50 mg',  ndc: '00093402901',
     path: 'PillProjectDisc108/images/Z2VW-3FR7UNUYL06B161TQX3DRNSFR.PNG' },
   { id: 'ketorolac',    label: 'Ketorolac',    strength: '10 mg',  ndc: '00093031401',
-    path: 'PillProjectDisc107/images/XDYIKARS6FBEIYA67UWPAY!PCCUGC9.PNG' },
+    path: 'PillProjectDisc107/images/XDYIKARS6FBEIYA67UWPAY_PCCUGC9.PNG' },
   { id: 'diclofenac',   label: 'Diclofenac',   strength: '75 mg',  ndc: '00228255006',
-    path: 'PillProjectDisc110/images/!P73WU5I4P0OHEWNH240QJ!VWHVQ5N.PNG' },
+    path: 'PillProjectDisc110/images/_P73WU5I4P0OHEWNH240QJ!VWHVQ5N.PNG' },
   { id: 'piroxicam',    label: 'Piroxicam',    strength: '20 mg',  ndc: '00093075601',
     path: 'PillProjectDisc108/images/YLQFTNQDL3ZOF-S05EM6!1WIY933E3.PNG' },
 ];
@@ -46,7 +44,6 @@ export const wojaks = [
   { id: 'mouse-glasses', file: 'mouse_with_glasses_soyjak.png', page: 'https://wojakland.com/animals' },
   { id: 'rat',           file: 'White_Rat_with_Cheese_wojak.png', page: 'https://wojakland.com/animals' },
   { id: 'rabbit',        file: 'rabbit_groomer.png',            page: 'https://wojakland.com/animals' },
-  { id: 'rooster',       file: 'rooster_cahd.png',              page: 'https://wojakland.com/animals' },
   { id: 'hand-point',    file: 'wojak_hand_pointing.png',       page: 'https://wojakland.com/wojak-pointing' },
 ];
 

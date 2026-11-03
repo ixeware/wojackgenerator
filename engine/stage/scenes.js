@@ -1,399 +1,373 @@
 // One function per shot kind. Each is a pure function of ctx (time, assets,
 // anchors) and draws that moment. Internal animation syncs to anchored word
-// times via ctx.mark/ctx.since so visuals land on the exact word.
-import { W, H, r1, lerp, clamp, easeOut, easeOut2, easeIn, easeInOut, backOut, spring, vis } from './lib.js';
+// times via ctx.mark(...) so visuals land on the exact spoken word.
+//
+// Vertical grid (1080×1920):
+//   112–300   headline        334–540  PubMed citation dock (study shots)
+//   580–1400  content         1640+    captions      bottom: presenter
+import { W, r1, lerp, clamp, easeOut, easeInOut, spring, vis } from './lib.js';
 import * as P from './parts.js';
 import * as D from './diagrams.js';
 
-const TITLE_Y = 150;
+const TITLE_Y = 112;
+const DOCK_Y = 334;
 
-// headline + context label block shared by study scenes
 function head(ctx, o) {
   const { title, sub, t0 = ctx.shot.start, color = 'var(--ink)', subColor = 'var(--red)', year } = o;
-  const v = vis(ctx.t, t0, Infinity, 0.3);
-  if (v <= 0) return;
   const lines = title.split('\n');
   lines.forEach((l, i) => {
-    const lv = vis(ctx.t, t0 + i * 0.08, Infinity, 0.3);
-    ctx.html('over', `<div class="disp" style="position:absolute;left:64px;top:${TITLE_Y + i * 92}px;font-size:84px;line-height:1.02;color:${color};opacity:${r1(lv)};transform:translateY(${r1((1 - lv) * 14)}px)">${l}</div>`);
+    const lv = vis(ctx.t, t0 + i * 0.07, Infinity, 0.28);
+    if (lv <= 0) return;
+    ctx.html('over', `<div class="disp" style="position:absolute;left:64px;top:${TITLE_Y + i * 92}px;font-size:86px;line-height:1.02;white-space:nowrap;color:${color};opacity:${r1(lv)};transform:translateY(${r1((1 - lv) * 16)}px)">${l}</div>`);
   });
-  if (year) {
-    P.chip(ctx, year, { x: W - 70, y: TITLE_Y + 24, t0: t0 + 0.1, align: 'right', cls: 'ink', size: 30 });
-  }
+  if (year) P.chip(ctx, year, { x: W - 64, y: TITLE_Y + 46, t0: t0 + 0.1, align: 'right', cls: 'ink', size: 34 });
   if (sub) {
-    const y = TITLE_Y + lines.length * 92 + 8;
-    ctx.html('over', `<div class="label up" style="left:66px;top:${y}px;opacity:${r1(v)};color:${subColor}">${sub}</div>`);
+    const v = vis(ctx.t, t0 + 0.15, Infinity, 0.3);
+    ctx.html('over', `<div class="label up" style="left:66px;top:${TITLE_Y + lines.length * 92 + 14}px;opacity:${r1(v)};color:${subColor}">${sub}</div>`);
   }
 }
 
-const since = (ctx, m) => ctx.since(m);
-const after = (ctx, m, d = 0) => ctx.mark(m) != null && ctx.t >= ctx.mark(m) + d;
-const prog = (ctx, m, dur, delay = 0) => { const s = ctx.mark(m); return s == null ? 0 : clamp((ctx.t - s - delay) / dur, 0, 1); };
+const has = (ctx, m) => ctx.mark(m) != null;
+const after = (ctx, m, d = 0) => has(ctx, m) && ctx.t >= ctx.mark(m) + d;
+const prog = (ctx, m, dur, delay = 0) => (has(ctx, m) ? clamp((ctx.t - ctx.mark(m) - delay) / dur, 0, 1) : 0);
+const at = (ctx, m, d = 0, fallback = Infinity) => (has(ctx, m) ? ctx.mark(m) + d : fallback);
 
 export const scenes = {
-  // ----------------------------------------------------------------- HOOK
+  // ================================================================= HOOK
   hook(ctx, shot) {
     const lt = ctx.local;
-    // big question headline
-    const hv = vis(ctx.t, 0.05, Infinity, 0.4);
-    ctx.html('over', `<div class="disp" style="position:absolute;left:60px;top:120px;width:960px;font-size:96px;line-height:0.98;opacity:${r1(hv)}">Can a <span style="color:var(--red)">painkiller</span><br>make you<br><span style="color:var(--red)">shorter?</span></div>`);
+    const hv = vis(ctx.t, 0.0, Infinity, 0.35);
+    ctx.html('over', `<div class="disp" style="position:absolute;left:62px;top:${r1(116 + (1 - hv) * 20)}px;width:960px;font-size:100px;line-height:0.98;opacity:${r1(hv)}">Can a <span style="color:var(--red)">painkiller</span><br>make you<br><span style="background:var(--yellow);padding:0 12px;border-radius:14px">shorter?</span></div>`);
 
-    // three pills tumble in
-    const names = ['ibuprofen', 'aspirin', 'naproxen'];
-    const px = [300, 540, 780];
-    names.forEach((id, i) => {
-      const k = spring((lt - (0.3 + i * 0.12)) * 1.3);
+    // a handful of pills tumbles in
+    const pills = [['aspirin', 190, 640, 160, -18], ['naproxen', 470, 620, 160, 14], ['ibuprofen', 330, 750, 270, -8]];
+    pills.forEach(([id, x, y, s, rot], i) => {
+      const k = spring((lt - (0.18 + i * 0.1)) * 1.3);
       if (k <= 0) return;
-      P.pill(ctx, id, { cx: px[i], cy: lerp(560, 640, easeOut(k)), size: lerp(60, 210, Math.min(1, k)), rot: lerp(-40, [-12, 6, -6][i], easeOut(k)), key: 'hk-' + id, o: Math.min(1, k * 1.4) });
+      P.pill(ctx, id, { cx: x, cy: lerp(y - 160, y, Math.min(1, k)), size: s * Math.min(1, k), rot: lerp(rot - 70, rot, Math.min(1, k)), key: 'hk-' + id, o: Math.min(1, k * 1.4) });
     });
-    ctx.anchor(shot.id + '.pill', 540, 640);
+    ctx.anchor(shot.id + '.pill', 330, 700);
 
-    // arrow pills -> mouse once pills are down
-    const arrowAt = ctx.mark('mice') ?? 3.5;
-    P.arrow(ctx, [820, 700], [905, 760], arrowAt - 0.3, { color: 'var(--ink)', width: 9, bend: 0.1 });
-
-    // the mouse, then it shrinks into a dwarf as "dwarfs" is said
-    const shrink = prog(ctx, 'dwarfs', 0.5, 0.0);
-    const mouseV = spring((lt - 1.1) * 1.1);
-    if (mouseV > 0) {
-      const base = 300, sz = lerp(base, base * 0.5, easeInOut(shrink));
-      P.sticker(ctx, 'mouse', { x: 905, y: lerp(900, 980, easeInOut(shrink)), h: sz * mouseV, t0: 1.0, key: 'hk-mouse', z: 44 });
-    }
-    ctx.anchor(shot.id + '.mouse', 905, 820);
-    if (shrink > 0.3) {
-      P.emoji(ctx, '💀', { x: 905, y: 560, size: lerp(40, 150, easeOut(shrink)), t0: ctx.mark('dwarfs'), rot: -6 });
-    }
-
-    // "DWARFISM" stamp + not clickbait
-    if (after(ctx, 'dwarfs', 0.1)) {
-      P.stamp(ctx, 'dwarfs', { x: 540, y: 1180, t0: ctx.mark('dwarfs') + 0.08, rot: -7, color: 'var(--red)', size: 120, anchor: shot.id + '.stamp' });
-    }
-    if (after(ctx, 'clickbait', -0.2)) {
-      P.chip(ctx, 'NOT clickbait', { x: 540, y: 1330, t0: ctx.mark('clickbait') - 0.1, cls: 'ink', size: 40, rot: -2 });
-    }
-    return { camera: { scale: lerp(1.06, 1, easeOut(clamp(lt / 1.2, 0, 1))), ox: 540, oy: 700 } };
+    // arrow → the mouse, who then shrinks on "dwarfs"
+    P.arrow(ctx, [520, 770], [690, 820], at(ctx, 'mice', -0.25, 1.4), { color: 'var(--ink)', width: 9, bend: -0.25 });
+    const shrink = easeInOut(prog(ctx, 'dwarfs', 0.45));
+    const mh = lerp(340, 165, shrink);
+    const ground = 1060;
+    P.sticker(ctx, 'mouse', { x: 845, y: ground, h: mh, t0: 1.0, key: 'hk-mouse', z: 26 });
+    ctx.anchor(shot.id + '.mouse', 845, ground - mh * 0.62);
+    // height ruler shows how much was lost
+    D.ruler(ctx, { x: 1012, y0: ground - 360, y1: ground, v: vis(ctx.t, 1.1) });
+    if (shrink > 0) ctx.svg('over', `<line x1="770" y1="${ground - 340}" x2="1000" y2="${ground - 340}" stroke="var(--red)" stroke-width="5" stroke-dasharray="6 9" opacity="${r1(shrink)}"/>`);
+    P.emoji(ctx, '💀', { x: 845, y: 560, size: 150, t0: at(ctx, 'dwarfs', 0.1), rot: -8 });
+    P.stamp(ctx, 'dwarfism', { x: 330, y: 935, t0: at(ctx, 'dwarfs', 0.08), rot: -7, size: 104 });
+    return { camera: { scale: lerp(1.07, 1, easeOut(clamp(lt / 1.3, 0, 1))), ox: 540, oy: 760 } };
   },
 
-  // ----------------------------------------------------------------- PAPER proof
+  // ================================================================= PROOF
   paper(ctx, shot) {
     const paper = ctx.TL.papers[shot.paper];
-    head(ctx, { title: "It's in\nthe paper.", sub: 'Receipts', subColor: 'var(--green)' });
+    head(ctx, { title: "It's in\nthe paper.", sub: 'Receipts · PubMed', subColor: 'var(--green)' });
     P.citeCard(ctx, paper, {
-      x: 90, y: 470, w: 900, t0: shot.start + 0.1, size: 52, lines: 4,
+      x: 76, y: 470, w: 928, t0: shot.start + 0.08, size: 50, lines: 3,
       quote: paper.quote, highlight: paper.highlight, hlAt: ctx.mark('actual'),
       anchor: shot.id + '.highlight', tilt: -1.4,
     });
-    // register where the highlighted word sits (approx, lower third of card)
-    ctx.anchor(shot.id + '.highlight', 300, 980);
+    ctx.anchor(shot.id + '.highlight', 700, 1010); // replaced by the measured word position
     return {};
   },
 
-  // ----------------------------------------------------------------- COX block
+  // ================================================================= COX
   cox(ctx, shot) {
-    head(ctx, { title: 'They all\nblock COX.', sub: 'One enzyme, many signals', subColor: 'var(--violet)' });
-    // three pills on the left, lined up
-    const names = ['ibuprofen', 'aspirin', 'naproxen'];
-    const labels = ['Ibuprofen', 'Aspirin', 'Naproxen'];
-    names.forEach((id, i) => {
-      const k = spring((ctx.local - (0.1 + i * 0.1)) * 1.4);
+    head(ctx, { title: 'They all\nblock COX.', sub: 'One enzyme, many jobs', subColor: 'var(--violet)' });
+    const names = [['ibuprofen', 'Ibuprofen', 'ibuprofen'], ['aspirin', 'Aspirin', 'aspirin'], ['naproxen', 'Naproxen', 'naproxen1']];
+    names.forEach(([id, lab, m], i) => {
+      const t0 = Math.min(at(ctx, m, -0.12, shot.start + i * 0.3), shot.start + 0.1 + i * 0.6);
+      const k = spring((ctx.t - t0) * 1.4);
       if (k <= 0) return;
       const cy = 560 + i * 150;
-      P.pill(ctx, id, { cx: 190, cy, size: 128 * Math.min(1, k), rot: [-8, 4, -5][i], key: 'cx-' + id, o: Math.min(1, k * 1.3) });
-      P.label(ctx, labels[i], { x: 290, y: cy, t0: shot.start + 0.1 + i * 0.1, align: 'left', size: 38, weight: 700 });
+      P.pill(ctx, id, { cx: 150, cy, size: 124 * Math.min(1, k), rot: [-8, 4, -5][i], key: 'cx-' + id, o: Math.min(1, k * 1.3) });
+      P.label(ctx, lab, { x: 238, y: cy, t0, align: 'left', size: 42, weight: 800, font: 'Bricolage' });
     });
-    // arrows into the enzyme
-    const enzymeX = 760, enzymeY = 720;
-    D.enzyme(ctx, { cx: enzymeX, cy: enzymeY, r: 150, label: 'COX', color: 'var(--violet)', wob: 1,
-      blocked: prog(ctx, 'enzyme', 0.5, 0.2), v: vis(ctx.t, shot.start + 0.3) });
-    ctx.anchor(shot.id + '.enzyme', enzymeX, enzymeY - 40);
-    [540, 710, 880].forEach((cy, i) => P.arrow(ctx, [330, cy], [enzymeX - 150, enzymeY], shot.start + 0.4 + i * 0.08, { color: 'var(--ink)', width: 6, bend: 0.12 }));
+    const ex = 820, ey = 720;
+    D.enzyme(ctx, { cx: ex, cy: ey, r: 138, label: 'COX', color: 'var(--violet)', wob: 1,
+      blocked: prog(ctx, 'enzyme', 0.45, 0.25), v: vis(ctx.t, at(ctx, 'blockCox', -0.2, shot.start + 1)) });
+    ctx.anchor(shot.id + '.enzyme', ex, ey - 30);
+    [560, 710, 860].forEach((cy, i) => P.arrow(ctx, [520, cy], [ex - 145, ey + (i - 1) * 50], at(ctx, 'blockCox', i * 0.07, shot.start + 1), { color: 'var(--red)', width: 7, bend: 0.1 }));
 
-    // COX -> prostaglandins -> "more than pain"
     if (after(ctx, 'prostaglandins', -0.3)) {
-      const pv = vis(ctx.t, ctx.mark('prostaglandins') - 0.2);
-      ctx.svg('under', `<g opacity="${r1(pv)}">${D.pg(760, 1010, 1.8, 'var(--green)', 1)}</g>`);
-      P.label(ctx, 'prostaglandins', { x: 760, y: 1110, t0: ctx.mark('prostaglandins') - 0.1, size: 40, color: 'var(--green)', weight: 700 });
-      P.arrow(ctx, [enzymeX, enzymeY + 150], [760, 960], ctx.mark('prostaglandins') - 0.2, { color: 'var(--green)', width: 7 });
+      const pv = vis(ctx.t, ctx.mark('prostaglandins') - 0.25);
+      P.arrow(ctx, [ex, ey + 140], [ex, 960], ctx.mark('prostaglandins') - 0.25, { color: 'var(--green)', width: 7, bend: 0 });
+      ctx.svg('under', `<g opacity="${r1(pv)}">${D.pg(ex - 60, 1010, 1.6, 'var(--green)')}${D.pg(ex + 60, 1030, 1.3, 'var(--green)')}</g>`);
+      P.label(ctx, 'prostaglandins', { x: ex, y: 1110, t0: ctx.mark('prostaglandins') - 0.1, size: 40, color: 'var(--green)', weight: 800, font: 'Bricolage' });
     }
-    if (after(ctx, 'pain', -0.2)) {
-      P.chip(ctx, '🔥 pain · 🦴 bone growth · 🩸 more', { x: 540, y: 1230, t0: ctx.mark('pain') - 0.1, size: 34 });
-    }
+    const jobs = [['😖 pain', 210], ['🌡️ fever', 470], ['🦴 bone growth', 790]];
+    jobs.forEach(([txt, x], i) => {
+      const t0 = at(ctx, 'more', -0.05 + i * 0.16);
+      P.chip(ctx, txt, { x, y: 1260, t0, size: 34, bg: i === 2 ? 'var(--yellow)' : undefined, rot: i === 2 ? -3 : 0 });
+    });
     return {};
   },
 
-  // ----------------------------------------------------------------- GROWTH PLATE
+  // ================================================================= GROWTH PLATE
   plate(ctx, shot) {
     head(ctx, { title: 'Where bones\nget longer.', sub: 'The growth plate', subColor: 'var(--blue)' });
-    // bone on the left; glow its growth plate on "growth plate"
-    const g = prog(ctx, 'plate', 0.6, 0);
-    const b = D.bone(ctx, { cx: 250, top: 420, h: 760, w: 220, t0: shot.start + 0.2, glow: g, anchor: shot.id + '.band' });
-    ctx.anchor(shot.id + '.band', 320, 548);
-    P.label(ctx, 'growth plate', { x: 250, y: 1230, t0: ctx.mark('plate') - 0.1, size: 36, color: 'var(--blue)', weight: 700 });
-
-    // zoomed column on the right showing divide / swell / replaced
-    const col = D.plateColumn(ctx, {
-      x: 640, y: 440, w: 230, h: 740,
-      divide: prog(ctx, 'divide', 1.0, 0),
-      swell: prog(ctx, 'swell', 1.0, 0),
-      ossify: prog(ctx, 'replaced', 1.1, 0),
-      v: vis(ctx.t, shot.start + 0.3),
+    const b = D.bone(ctx, { cx: 250, top: 440, h: 800, w: 220, t0: shot.start + 0.15, glow: prog(ctx, 'plate', 0.5, -0.1), anchor: shot.id + '.band' });
+    if (b) ctx.anchor(shot.id + '.band', b.plate[0] + 40, b.plate[1]);
+    P.label(ctx, 'growth plate', { x: 250, y: 1290, t0: at(ctx, 'plate', -0.1), size: 38, color: 'var(--blue)', weight: 800, font: 'Bricolage' });
+    D.plateColumn(ctx, {
+      x: 610, y: 450, w: 250, h: 780,
+      divide: prog(ctx, 'divide', 1.0), swell: prog(ctx, 'swell', 1.0), ossify: prog(ctx, 'replaced', 1.1),
+      v: vis(ctx.t, at(ctx, 'plate', 0.1, shot.start + 1)),
     });
-    // connector from plate to column
-    P.arrow(ctx, [380, 548], [630, 520], shot.start + 0.5, { color: 'var(--ink)', width: 6, bend: -0.1, dash: '2 10' });
+    P.arrow(ctx, [395, 560], [600, 480], at(ctx, 'plate', 0.05, shot.start + 1), { color: 'var(--ink)', width: 6, bend: -0.15, dash: '2 12' });
+    // the column grows downward = bone gets longer
+    P.chip(ctx, '↑ longer bone', { x: 735, y: 1300, t0: at(ctx, 'replaced', 0.3), size: 32, bg: 'var(--green-soft)' });
     return {};
   },
 
-  // ----------------------------------------------------------------- 2015 PATHWAY
+  // ================================================================= 2015 PATHWAY
   pathway(ctx, shot) {
-    head(ctx, { title: 'The growth\nsignal.', sub: 'COX-2 · IGF-1 · ERK', subColor: 'var(--violet)', year: '2015' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.2, Infinity, 300);
+    head(ctx, { title: 'The growth\nsignal.', year: '2015' });
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    const cx = 330, Y = { cox: 720, pg: 940, erk: 1160 };
+    const blocked = prog(ctx, 'block2015', 0.45), stopped = prog(ctx, 'stop', 0.4);
+    const rescue = prog(ctx, 'add2015', 0.6), back = prog(ctx, 'returns', 0.4);
+    const off = blocked > 0.3 && back < 0.3;
+    const v0 = vis(ctx.t, shot.start + 0.3);
 
-    const cx = 300;
-    const ys = { cox: 620, pg: 850, erk: 1080 };
-    // signal rail
-    ctx.svg('under', `<line x1="${cx}" y1="${ys.cox + 80}" x2="${cx}" y2="${ys.erk - 80}" stroke="#C7CBD2" stroke-width="7"/>`);
-
-    const blocked = prog(ctx, 'block2015', 0.5);
-    const stopped = prog(ctx, 'stop', 0.5);
-    const rescue = prog(ctx, 'add2015', 0.6);
-    const returned = prog(ctx, 'returns', 0.5);
-
-    // COX-2 node, dimmed when blocked
-    D.node(ctx, { cx, cy: ys.cox, r: 86, text: 'COX-2', state: blocked > 0.3 ? -1 : 1, color: 'var(--violet)', v: vis(ctx.t, shot.start + 0.3), anchor: shot.id + '.cox', size: 40 });
-    // IGF-1 input arrow raising COX-2 (on "packed / igf")
-    if (after(ctx, 'igf', -0.2)) {
-      P.arrow(ctx, [cx - 230, ys.cox - 40], [cx - 86, ys.cox], ctx.mark('igf') - 0.1, { color: 'var(--green)', width: 7 });
-      P.chip(ctx, 'IGF-1 ↑', { x: cx - 250, y: ys.cox - 70, t0: ctx.mark('igf') - 0.1, size: 30, bg: 'var(--green-soft)', color: 'var(--ink)' });
+    ctx.svg('under', `<line x1="${cx}" y1="${Y.cox}" x2="${cx}" y2="${Y.erk}" stroke="#CDD1D8" stroke-width="8" opacity="${r1(v0)}"/>`);
+    D.node(ctx, { cx, cy: Y.cox, r: 88, text: 'COX-2', state: blocked > 0.3 ? -1 : 1, color: 'var(--violet)', v: v0, size: 40 });
+    ctx.anchor(shot.id + '.cox', cx + 20, Y.cox - 20);
+    // COX-2 level meter: high, then higher with IGF-1
+    const lvl = Math.max(prog(ctx, 'packed', 0.5) * 0.65, prog(ctx, 'igf', 0.5) * 1);
+    if (lvl > 0) {
+      const mh = 150 * lvl;
+      ctx.svg('under', `<g opacity="${r1(v0)}"><rect x="${cx + 108}" y="${Y.cox - 75}" width="34" height="150" rx="10" fill="#fff" stroke="var(--ink)" stroke-width="4"/>
+        <rect x="${cx + 112}" y="${r1(Y.cox + 71 - mh)}" width="26" height="${r1(mh - 4)}" rx="7" fill="var(--violet)"/></g>`);
     }
-    // block token docks on "block"
-    if (blocked > 0) {
-      const k = spring(blocked * 1.3);
-      P.pill(ctx, 'ibuprofen', { cx: lerp(cx + 320, cx + 110, easeOut(blocked)), cy: ys.cox, size: 96 * Math.min(1, k), rot: -12, key: 'pw-pill' });
-    }
+    P.chip(ctx, 'IGF-1', { x: 70, y: Y.cox - 130, t0: at(ctx, 'igf', -0.1), align: 'left', size: 32, bg: 'var(--green-soft)' });
+    P.arrow(ctx, [150, Y.cox - 100], [cx - 92, Y.cox - 20], at(ctx, 'igf', 0), { color: 'var(--green)', width: 7, bend: 0.2 });
+    if (blocked > 0) P.pill(ctx, 'ibuprofen', { cx: lerp(cx + 330, cx + 76, easeOut(blocked)), cy: Y.cox + 60, size: 104, rot: -14, key: 'pw-pill' });
 
-    // PGE2 / prostacyclin node
-    D.node(ctx, { cx, cy: ys.pg, r: 72, text: 'PG', sub: rescue > 0.2 ? '+ added' : 'PGE2/PGI2', state: blocked > 0.3 && rescue < 0.3 ? 0 : 1, color: 'var(--green)', v: vis(ctx.t, shot.start + 0.4), anchor: shot.id + '.pg' });
-    ctx.svg('under', D.pg(cx, ys.pg, rescue > 0.2 ? 1 : 0.0001, 'var(--green)', clamp(rescue, 0, 1)));
-
-    // ERK / division node at the bottom
-    const erkState = stopped > 0.3 && returned < 0.3 ? -1 : 1;
-    D.node(ctx, { cx, cy: ys.erk, r: 86, text: 'ERK', sub: 'cell division', state: erkState, color: 'var(--blue)', v: vis(ctx.t, shot.start + 0.5), anchor: shot.id + '.erk', size: 40 });
-    ctx.anchor(shot.id + '.division', cx, ys.erk - 20);
-
-    // connecting arrows light up with signal
-    P.arrow(ctx, [cx, ys.cox + 86], [cx, ys.pg - 72], shot.start + 0.6, { color: blocked > 0.3 ? '#B9Bec6' : 'var(--violet)', width: 6 });
-    P.arrow(ctx, [cx, ys.pg + 72], [cx, ys.erk - 86], shot.start + 0.7, { color: erkState < 0 ? 'var(--red)' : 'var(--green)', width: 6 });
-
-    // rescue input from the side
-    if (rescue > 0.05) {
-      P.arrow(ctx, [cx + 280, ys.pg], [cx + 72, ys.pg], ctx.mark('add2015'), { color: 'var(--green)', width: 7 });
+    D.node(ctx, { cx, cy: Y.pg, r: 74, text: 'PG', sub: 'PGE2 · PGI2', state: off && rescue < 0.3 ? 0 : 1, color: 'var(--green)', v: v0 });
+    D.node(ctx, { cx, cy: Y.erk, r: 88, text: 'ERK', state: stopped > 0.3 && back < 0.3 ? -1 : 1, color: 'var(--blue)', v: v0, size: 44 });
+    ctx.anchor(shot.id + '.erk', cx + 20, Y.erk - 20);
+    if (rescue > 0) {
+      P.arrow(ctx, [cx + 300, Y.pg - 60], [cx + 80, Y.pg], ctx.mark('add2015'), { color: 'var(--green)', width: 8, bend: 0.15 });
+      P.chip(ctx, '+ PGE2 / PGI2', { x: cx + 300, y: Y.pg - 100, t0: ctx.mark('add2015') - 0.05, size: 30, bg: 'var(--green-soft)' });
     }
 
-    // status stamp on the right
-    if (stopped > 0.3 && returned < 0.2) P.stamp(ctx, 'division ↓', { x: 760, y: ys.erk, t0: ctx.mark('stop') + 0.1, color: 'var(--red)', size: 58, rot: -6 });
-    if (returned > 0.2) P.stamp(ctx, 'signal back', { x: 760, y: ys.erk, t0: ctx.mark('returns'), color: 'var(--green)', size: 56, rot: -4 });
+    // the cell on the right: dividing while the signal flows
+    const divOn = !(stopped > 0.3 && back < 0.5);
+    const cyc = (ctx.t * 0.9) % 1;
+    const split = divOn ? Math.sin(cyc * Math.PI) : lerp(0.15, 0, stopped);
+    ctx.svg('under', `<g opacity="${r1(v0)}">${D.cell({ x: 790, y: 960, r: 92, split: clamp(split, 0, 1), dim: divOn ? 0 : 0.8 })}</g>`);
+    P.label(ctx, 'cell division', { x: 790, y: 1150, t0: shot.start + 0.4, size: 34, color: 'var(--ink-2)', weight: 700 });
+    ctx.anchor(shot.id + '.division', 790, 900);
+    P.stamp(ctx, 'stopped', { x: 790, y: 960, t0: at(ctx, 'stop', 0.05), t1: at(ctx, 'returns', -0.1), size: 56, rot: -8 });
+    P.stamp(ctx, 'back on', { x: 790, y: 960, t0: at(ctx, 'returns', 0), size: 54, rot: -5, color: 'var(--green)' });
     return {};
   },
 
-  // ----------------------------------------------------------------- 2015 MICE
+
+  // ================================================================= 2015 MICE
   mice(ctx, shot) {
-    head(ctx, { title: 'Same paper,\nreal mice.', sub: 'Inject NSAIDs → dwarfism', subColor: 'var(--red)' });
-    // normal mouse vs small mouse, with a height ruler
-    const normalH = 300, smallH = 180;
-    const grow = prog(ctx, 'miceDwarf', 0.6);
-    P.sticker(ctx, 'mouse', { x: 330, y: 1080, h: normalH, t0: shot.start + 0.3, key: 'mc-norm', z: 42 });
-    P.label(ctx, 'control', { x: 330, y: 1130, t0: shot.start + 0.4, size: 32, color: 'var(--ink-2)' });
-    // dashed height line of the control
-    ctx.svg('over', `<line x1="180" y1="${1080 - normalH}" x2="900" y2="${1080 - normalH}" stroke="var(--ink)" stroke-width="3" stroke-dasharray="4 10" opacity="${r1(vis(ctx.t, shot.start + 0.5))}"/>`);
-    // small mouse appears when "dwarfism" is said
-    const sv = spring(since(ctx, 'miceDwarf') * 1.2);
-    if (ctx.mark('miceDwarf') != null && ctx.t >= ctx.mark('miceDwarf') - 0.3) {
-      P.sticker(ctx, 'mouse-glasses', { x: 740, y: 1080, h: smallH * Math.min(1, Math.max(0, sv)), t0: ctx.mark('miceDwarf') - 0.25, key: 'mc-small', z: 42 });
-      P.label(ctx, 'NSAIDs', { x: 740, y: 1130, t0: ctx.mark('miceDwarf') - 0.2, size: 32, color: 'var(--red)', weight: 700 });
-      ctx.anchor(shot.id + '.small', 740, 1000);
-      // gap arrow showing the height difference
-      P.arrow(ctx, [740, 1080 - normalH], [740, 1080 - smallH], ctx.mark('miceDwarf') + 0.2, { color: 'var(--red)', width: 6, bend: 0.25 });
-      P.stamp(ctx, 'shorter', { x: 860, y: 1080 - (normalH + smallH) / 2, t0: ctx.mark('miceDwarf') + 0.3, color: 'var(--red)', size: 48, rot: 8 });
-    } else {
-      ctx.anchor(shot.id + '.small', 740, 1000);
-    }
+    head(ctx, { title: 'Same paper:\nreal mice.', sub: 'Injected NSAIDs → dwarfism' });
+    const ground = 1190;
+    const v0 = vis(ctx.t, shot.start + 0.2);
+    ctx.svg('under', `<line x1="90" y1="${ground}" x2="990" y2="${ground}" stroke="var(--ink)" stroke-width="6" stroke-linecap="round" opacity="${r1(v0)}"/>`);
+    // control mouse
+    P.sticker(ctx, 'mouse', { x: 310, y: ground, h: 360, t0: shot.start + 0.2, key: 'mc-ctrl', z: 26 });
+    P.label(ctx, 'control', { x: 310, y: ground + 46, t0: shot.start + 0.3, size: 34, color: 'var(--ink-2)' });
+    // treated mouse: same size at first, shrinks on "dwarfism"
+    const shrink = easeInOut(prog(ctx, 'miceDwarf', 0.45, -0.05));
+    const th = lerp(360, 200, shrink);
+    P.sticker(ctx, 'mouse', { x: 770, y: ground, h: th, t0: at(ctx, 'inject', -0.1, shot.start + 0.5), key: 'mc-nsaid', z: 26, flip: true });
+    P.label(ctx, 'NSAID injections', { x: 770, y: ground + 46, t0: at(ctx, 'inject', 0, shot.start + 0.6), size: 34, color: 'var(--red)', weight: 800 });
+    ctx.anchor(shot.id + '.small', 770, ground - th * 0.6);
+    // control height reference + the gap
+    if (v0 > 0) ctx.svg('over', `<line x1="170" y1="${ground - 360}" x2="980" y2="${ground - 360}" stroke="var(--ink)" stroke-width="4" stroke-dasharray="5 10" opacity="${r1(v0 * 0.7)}"/>`);
+    if (shrink > 0.2) P.arrow(ctx, [930, ground - 352], [930, ground - th - 8], ctx.mark('miceDwarf') + 0.15, { color: 'var(--red)', width: 7, bend: 0 });
+    P.stamp(ctx, 'dwarfism', { x: 560, y: 640, t0: at(ctx, 'miceDwarf', 0.1), size: 96, rot: -6 });
+    P.chip(ctx, 'schematic · see paper for data', { x: 540, y: 1330, t0: shot.start + 0.6, size: 24, color: 'var(--muted)' });
     return {};
   },
 
-  // ----------------------------------------------------------------- 2006 CELLS
+  // ================================================================= 2006 CELLS
   cells(ctx, shot) {
-    head(ctx, { title: 'Cells in\na dish.', sub: 'Four NSAIDs · rat growth plate', subColor: 'var(--red)', year: '2006' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.2, Infinity, 300);
-    // drug chips tick in as named
-    const drugs = [['indomethacin', 'Indomethacin'], ['keto', 'Ketorolac'], ['diclo', 'Diclofenac'], ['piro', 'Piroxicam']];
-    const marks = ['indo', 'keto', 'diclo', 'piro'];
-    drugs.forEach((d, i) => {
-      const m = ctx.mark(marks[i]);
-      if (m == null) return;
-      P.chip(ctx, d[1], { x: 150 + (i % 2) * 300, y: 430 + Math.floor(i / 2) * 78, t0: m - 0.08, align: 'left', size: 30 });
+    head(ctx, { title: 'Cells in\na dish.', year: '2006' });
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    // the four NSAIDs, each lands as it is named
+    const drugs = [['indomethacin', 'Indomethacin', 'indo', 120, 610], ['ketorolac', 'Ketorolac', 'keto', 580, 610],
+      ['diclofenac', 'Diclofenac', 'diclo', 120, 705], ['piroxicam', 'Piroxicam', 'piro', 580, 705]];
+    drugs.forEach(([id, name, m, x, y]) => {
+      const t0 = at(ctx, m, -0.1, shot.start + 1);
+      const k = spring((ctx.t - t0) * 1.4);
+      if (k <= 0) return;
+      P.pill(ctx, id, { cx: x + 40, cy: y, size: 86 * Math.min(1, k), rot: -10, key: 'c6-' + id, o: Math.min(1, k * 1.3) });
+      P.label(ctx, name, { x: x + 100, y, t0, align: 'left', size: 38, weight: 800, font: 'Bricolage' });
     });
-    // the dish
-    const cx = 540, cy = 1000;
-    D.dish(ctx, { cx, cy, r: 300,
-      divide: 1 - prog(ctx, 'down2006', 0.7),
-      die: prog(ctx, 'dying', 1.0),
-      rescueTry: prog(ctx, 'notsave', 0.8),
-      v: vis(ctx.t, shot.start + 0.3) });
-    ctx.anchor(shot.id + '.dish', cx, cy - 120);
-    // verdict chips
-    if (after(ctx, 'down2006', -0.1)) P.stamp(ctx, 'division ↓', { x: 240, y: 700, t0: ctx.mark('down2006'), color: 'var(--red)', size: 44, rot: -8 });
-    if (after(ctx, 'frozen', -0.1)) P.stamp(ctx, 'cycle frozen', { x: 840, y: 700, t0: ctx.mark('frozen'), color: 'var(--blue)', size: 42, rot: 6 });
-    if (after(ctx, 'dying', -0.1)) P.stamp(ctx, 'cells dying', { x: 540, y: 1360, t0: ctx.mark('dying'), color: 'var(--red)', size: 50, rot: -3 });
-    // PG rescue crossed out ("did not save them")
-    if (after(ctx, 'notsave', -0.1)) {
-      P.chip(ctx, 'add prostaglandins', { x: 300, y: 1330, t0: ctx.mark('notsave') - 0.1, size: 30, bg: 'var(--green-soft)', color: 'var(--ink)' });
-      P.scribble(ctx, 300, 1330, 180, 44, ctx.mark('notsave') + 0.3, { color: 'var(--red)', seed: 7 });
-    }
+    // culture dish: dividing, then frozen, then dying; PGs don't rescue
+    const cx = 540, cy = 1045;
+    D.dish(ctx, { cx, cy, r: 240, n: 24,
+      divide: 1 - prog(ctx, 'down2006', 0.6), die: prog(ctx, 'dying', 0.9), rescueTry: prog(ctx, 'notsave', 0.9, -0.6),
+      v: vis(ctx.t, at(ctx, 'rat2006', -0.1, shot.start + 0.8)) });
+    ctx.anchor(shot.id + '.dish', cx + 60, cy - 90);
+    const clear = at(ctx, 'notsave', -1.0);
+    P.stamp(ctx, 'division ↓', { x: 210, y: 860, t0: at(ctx, 'down2006', 0), t1: clear, size: 44, rot: -8 });
+    P.stamp(ctx, 'cycle frozen', { x: 870, y: 860, t0: at(ctx, 'frozen', 0), t1: clear, size: 40, rot: 7, color: 'var(--blue)' });
+    P.stamp(ctx, 'cells dying', { x: 540, y: 1325, t0: at(ctx, 'dying', 0), t1: clear, size: 46, rot: -3 });
+    // "adding prostaglandins back did not save them"
+    P.chip(ctx, '+ prostaglandins', { x: 540, y: 790, t0: at(ctx, 'notsave', -0.9), size: 32, bg: 'var(--green-soft)' });
+    P.scribble(ctx, 540, 790, 190, 46, at(ctx, 'notsave', 0.1), { color: 'var(--red)', seed: 7, width: 9 });
+    // "Nobody fully knows why."
+    P.sticker(ctx, 'thinking', { x: 905, y: 1010, h: 250, t0: at(ctx, 'nobody', -0.05), key: 'stk-thinking', rot: -4 });
+    P.chip(ctx, 'not just COX · ¯\\_(ツ)_/¯', { x: 540, y: 1330, t0: at(ctx, 'nobody', 0.1), size: 32, cls: 'ink', rot: -2 });
     return {};
   },
 
-  // ----------------------------------------------------------------- 2011 MATURE
+  // ================================================================= 2011 MATURE
   mature(ctx, shot) {
-    head(ctx, { title: 'Cartilage →\nbone stalls.', sub: 'COX-2 works with BMP-2', subColor: 'var(--violet)', year: '2011' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.2, Infinity, 300);
-    // COX-2 + BMP-2 -> hypertrophy; block -> stall
-    const cx = 300, cyTop = 640;
-    D.node(ctx, { cx: cx - 20, cy: cyTop, r: 76, text: 'COX-2', state: after(ctx, 'block2011', 0) ? -1 : 1, color: 'var(--violet)', v: vis(ctx.t, shot.start + 0.3), size: 36, anchor: shot.id + '.cell' });
-    D.node(ctx, { cx: cx + 300, cy: cyTop, r: 76, text: 'BMP-2', state: 1, color: 'var(--green)', v: vis(ctx.t, shot.start + 0.4), size: 36 });
-    // handshake arrows
-    P.arrow(ctx, [cx + 56, cyTop + 50], [cx + 244, cyTop + 50], shot.start + 0.5, { color: 'var(--ink)', width: 6, bend: 0.3 });
-    // a maturing cell growing then stalling
-    const sw = after(ctx, 'stalls', 0) ? 0.2 : prog(ctx, 'mature', 1.0, 0);
-    const cellY = 1000;
-    ctx.svg('under', `<g opacity="${r1(vis(ctx.t, shot.start + 0.5))}">
-      ${D.cell({ x: 440, y: cellY, r: 70, swell: easeOut(sw), mineral: after(ctx, 'stalls', 0) ? 0 : prog(ctx, 'mature', 1.2, 0.3) })}</g>`);
-    P.arrow(ctx, [cx + 140, cyTop + 76], [440, cellY - 90], shot.start + 0.7, { color: 'var(--green)', width: 6, bend: 0.1, dash: '2 10' });
-    P.label(ctx, 'mature into bone', { x: 540, y: 1150, t0: shot.start + 0.6, size: 34, color: 'var(--ink-2)' });
-    if (after(ctx, 'stalls', -0.1)) {
-      P.stamp(ctx, 'stalls', { x: 700, y: 1000, t0: ctx.mark('stalls'), color: 'var(--red)', size: 64, rot: -8 });
-      ctx.svg('over', `<g opacity="${r1(vis(ctx.t, ctx.mark('stalls')))}"><path d="M 610 940 L 690 1060 M 690 940 L 610 1060" stroke="var(--red)" stroke-width="8" stroke-linecap="round"/></g>`);
-    }
+    head(ctx, { title: 'Growing up\nstalls.', year: '2011' });
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    const v0 = vis(ctx.t, shot.start + 0.3);
+    const blocked = after(ctx, 'block2011', 0);
+    D.node(ctx, { cx: 290, cy: 720, r: 84, text: 'COX-2', state: blocked ? -1 : 1, color: 'var(--violet)', v: v0, size: 38 });
+    D.node(ctx, { cx: 790, cy: 720, r: 84, text: 'BMP-2', state: 1, color: 'var(--green)', v: v0, size: 38 });
+    P.arrow(ctx, [385, 690], [695, 690], at(ctx, 'coxworks', 0, shot.start + 0.6), { color: 'var(--ink)', width: 7, bend: -0.25 });
+    P.arrow(ctx, [695, 760], [385, 760], at(ctx, 'bmp', 0, shot.start + 0.8), { color: 'var(--ink)', width: 7, bend: -0.25 });
+    // maturation strip: small cell → swollen cell → bone
+    const y = 1060;
+    const grow = blocked ? Math.min(prog(ctx, 'mature', 1.0), 0.45) : prog(ctx, 'mature', 1.0);
+    ctx.svg('under', `<g opacity="${r1(v0)}">${D.cell({ x: 210, y, r: 52 })}${D.cell({ x: 540, y, r: 62, swell: easeOut(grow) })}
+      <rect x="790" y="${y - 70}" width="150" height="140" rx="24" fill="var(--bone)" stroke="var(--ink)" stroke-width="5" opacity="${r1(blocked ? 0.35 : 1)}"/>
+      <path d="M815 ${y - 20} Q865 ${y - 50} 915 ${y - 18} M815 ${y + 26} Q865 ${y} 915 ${y + 30}" stroke="var(--bone-deep)" stroke-width="9" fill="none" stroke-linecap="round" opacity="${r1(blocked ? 0.35 : 1)}"/></g>`);
+    P.arrow(ctx, [280, y], [460, y], shot.start + 0.7, { color: 'var(--ink)', width: 6, bend: 0 });
+    P.arrow(ctx, [640, y], [775, y], shot.start + 0.8, { color: blocked ? 'var(--red)' : 'var(--ink)', width: 6, bend: 0 });
+    P.label(ctx, 'cartilage', { x: 210, y: y + 110, t0: shot.start + 0.6, size: 30, color: 'var(--ink-2)' });
+    P.label(ctx, 'mature', { x: 540, y: y + 110, t0: shot.start + 0.7, size: 30, color: 'var(--ink-2)' });
+    P.label(ctx, 'bone', { x: 865, y: y + 110, t0: shot.start + 0.8, size: 30, color: 'var(--ink-2)' });
+    ctx.anchor(shot.id + '.cell', 560, y - 40);
+    if (blocked) ctx.svg('over', `<path d="M682 ${y - 34} L732 ${y + 34} M732 ${y - 34} L682 ${y + 34}" stroke="var(--red)" stroke-width="10" stroke-linecap="round" opacity="${r1(vis(ctx.t, ctx.mark('block2011')))}"/>`);
+    P.stamp(ctx, 'stalls', { x: 540, y: 1270, t0: at(ctx, 'stalls', 0), size: 70, rot: -6 });
     return {};
   },
 
-  // ----------------------------------------------------------------- 2017 RABBIT
+  // ================================================================= 2017 RABBITS
   rabbit(ctx, shot) {
-    head(ctx, { title: '25 days.\nRabbits.', sub: 'Celecoxib · femur', subColor: 'var(--red)', year: '2017' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.2, Infinity, 300);
-    P.sticker(ctx, 'rabbit', { x: 230, y: 760, h: 300, t0: shot.start + 0.3, key: 'rb', z: 42 });
-    // 25-day calendar ticking
-    const filled = Math.round(prog(ctx, 'cele25', 1.4) * 25);
+    head(ctx, { title: '25 days.\nRabbits.', year: '2017' });
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    P.sticker(ctx, 'rabbit', { x: 200, y: 930, h: 330, t0: at(ctx, 'rabbits', -0.1, shot.start + 0.5), key: 'rb', z: 26 });
+    P.pill(ctx, 'celecoxib', { cx: 455, cy: 660, size: 230 * Math.min(1, spring((ctx.t - at(ctx, 'cele25', -0.3, shot.start + 1)) * 1.4)), rot: -12, key: 'rb-cele' });
+    // 25 daily doses fill in
+    const filled = Math.round(prog(ctx, 'cele25', 1.3, -0.4) * 25);
     let cal = '';
     for (let i = 0; i < 25; i++) {
-      const on = i < filled;
-      const x = 470 + (i % 5) * 64, y = 470 + Math.floor(i / 5) * 64;
-      cal += `<rect x="${x}" y="${y}" width="48" height="48" rx="8" fill="${on ? 'var(--red)' : '#fff'}" stroke="var(--ink)" stroke-width="4"/>`;
+      const x = 640 + (i % 5) * 72, yy = 590 + Math.floor(i / 5) * 72;
+      cal += `<rect x="${x}" y="${yy}" width="56" height="56" rx="10" fill="${i < filled ? 'var(--red)' : '#fff'}" stroke="var(--ink)" stroke-width="4"/>`;
     }
-    ctx.svg('under', `<g opacity="${r1(vis(ctx.t, shot.start + 0.4))}">${cal}</g>`);
-    P.label(ctx, '25 daily doses', { x: 630, y: 830, t0: shot.start + 0.5, size: 30, color: 'var(--ink-2)' });
-    // the real figure: mineralisation front
-    const fig = P.figure(ctx, 'janssen-front', { x: 90, y: 980, w: 900, t0: ctx.mark('front') - 0.4 });
+    ctx.svg('under', `<g opacity="${r1(vis(ctx.t, at(ctx, 'cele25', -0.5, shot.start + 1)))}">${cal}</g>`);
+    // the real figure: mineralisation front, control vs celecoxib
+    const fig = P.figure(ctx, 'janssen-front', { x: 70, y: 980, w: 940, t0: at(ctx, 'front', -0.45, shot.start + 3) });
+    ctx.anchor(shot.id + '.front', ...(fig.on ? fig.map(600, 150) : [700, 1150]));
     if (fig.on) {
-      ctx.anchor(shot.id + '.front', ...fig.map(640, 110));
-      P.stamp(ctx, 'front fell behind', { x: 540, y: 1360, t0: ctx.mark('behind') ?? ctx.mark('front') + 0.4, color: 'var(--red)', size: 46, rot: -3 });
-    } else {
-      ctx.anchor(shot.id + '.front', 540, 1100);
+      P.scribble(ctx, ...fig.map(655, 140), 210, 70, at(ctx, 'behind', 0, at(ctx, 'front', 0.6)), { seed: 5 });
+      P.chip(ctx, 'mineralisation front: 2436 → 1830 µm', { x: 540, y: 955, t0: at(ctx, 'behind', 0.1, at(ctx, 'front', 0.7)), size: 28, cls: 'ink' });
     }
     return {};
   },
 
-  // ----------------------------------------------------------------- 2021 NAPROXEN
+  // ================================================================= 2021 NAPROXEN
   naproxen(ctx, shot) {
-    head(ctx, { title: '10 weeks.\nShorter bones.', sub: 'Naproxen · growing mice', subColor: 'var(--red)', year: '2021' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.2, Infinity, 300);
-    // the real length figure (tibia + femur)
-    const fig = P.figure(ctx, 'caron-length', { x: 70, y: 430, w: 940, t0: shot.start + 0.3 });
-    // point targets on the two length panels
-    ctx.anchor(shot.id + '.tibia', ...fig.map(760, 150));
-    ctx.anchor(shot.id + '.femur', ...fig.map(1320, 150));
-    if (after(ctx, 'shin', -0.1)) P.stamp(ctx, 'shin ↓', { x: fig.map(760, 150)[0], y: fig.map(760, 10)[1] - 10, t0: ctx.mark('shin'), color: 'var(--red)', size: 40, rot: -6 });
-    if (after(ctx, 'thigh', -0.1)) P.stamp(ctx, 'thigh ↓', { x: fig.map(1320, 150)[0], y: fig.map(1320, 10)[1] - 10, t0: ctx.mark('thigh'), color: 'var(--red)', size: 40, rot: 5 });
-
-    // zone changes: a small schematic column
-    const colY = 440 + fig.h + 30;
-    const col = D.plateColumn(ctx, { x: 120, y: colY, w: 200, h: 560,
-      divide: 1, swell: 1, ossify: 0.3, stall: after(ctx, 'thinner', 0) ? 0.6 : 0, labels: false,
-      v: vis(ctx.t, shot.start + 0.4) });
-    // thicker proliferative / thinner hypertrophic callouts
-    ctx.anchor(shot.id + '.prolif', 320, colY + 560 * 0.34);
-    ctx.anchor(shot.id + '.hyper', 320, colY + 560 * 0.64);
-    if (after(ctx, 'thicker', -0.1)) {
-      P.chip(ctx, 'dividing zone ↑', { x: 560, y: colY + 150, t0: ctx.mark('thicker') - 0.1, align: 'left', size: 32, bg: 'var(--violet-soft)', color: 'var(--ink)' });
-      P.arrow(ctx, [540, colY + 150], [330, colY + 560 * 0.34], ctx.mark('thicker'), { color: 'var(--violet)', width: 6 });
+    head(ctx, { title: '10 weeks.\nShorter bones.', year: '2021' });
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    // ten weekly ticks
+    const weeks = Math.round(prog(ctx, 'naproxen10', 0.9, -0.3) * 10);
+    P.ticks(ctx, { x: 160, y: 588, n: 10, filled: weeks, size: 52, gap: 26, color: 'var(--red)', t0: shot.start + 0.4 });
+    P.pill(ctx, 'naproxen', { cx: 92, cy: 614, size: 96, rot: -10, key: 'nx-pill', o: vis(ctx.t, shot.start + 0.4) });
+    // real data: tibia + femur length, then growth-plate zone thickness
+    const swap = at(ctx, 'thicker', -0.5);
+    const lenFig = P.figure(ctx, 'caron-length', { x: 50, y: 690, w: 980, t0: at(ctx, 'shin', -0.6, shot.start + 1.5), t1: swap });
+    const zoneFig = P.figure(ctx, 'caron-zones', { x: 50, y: 690, w: 980, t0: swap });
+    if (lenFig.on) {
+      ctx.anchor(shot.id + '.tibia', ...lenFig.map(311, 232));
+      ctx.anchor(shot.id + '.femur', ...lenFig.map(904, 232));
+      P.scribble(ctx, ...lenFig.map(270, 200), 150, 90, at(ctx, 'shin', 0.05), { seed: 2, t1: swap });
+      P.scribble(ctx, ...lenFig.map(860, 200), 150, 90, at(ctx, 'thigh', 0.05), { seed: 9, t1: swap });
+      P.chip(ctx, 'shin ↓', { x: lenFig.map(311, 0)[0], y: lenFig.map(0, 0)[1] - 30, t0: at(ctx, 'shin', 0.1), t1: swap, size: 30, bg: 'var(--red-soft)' });
+      P.chip(ctx, 'thigh ↓', { x: lenFig.map(904, 0)[0], y: lenFig.map(0, 0)[1] - 30, t0: at(ctx, 'thigh', 0.1), t1: swap, size: 30, bg: 'var(--red-soft)' });
+    } else {
+      ctx.anchor(shot.id + '.tibia', 330, 900);
+      ctx.anchor(shot.id + '.femur', 760, 900);
     }
-    if (after(ctx, 'thinner', -0.1)) {
-      P.chip(ctx, 'maturing zone ↓', { x: 560, y: colY + 360, t0: ctx.mark('thinner') - 0.1, align: 'left', size: 32, bg: 'var(--red-soft)', color: 'var(--ink)' });
-      P.arrow(ctx, [540, colY + 360], [330, colY + 560 * 0.64], ctx.mark('thinner'), { color: 'var(--red)', width: 6 });
+    if (zoneFig.on) {
+      ctx.anchor(shot.id + '.prolif', ...zoneFig.map(255, 150));
+      ctx.anchor(shot.id + '.hyper', ...zoneFig.map(788, 205));
+      P.chip(ctx, 'dividing zone ↑', { x: zoneFig.map(255, 0)[0], y: zoneFig.map(0, 0)[1] - 30, t0: at(ctx, 'thicker', 0), size: 30, bg: 'var(--violet-soft)' });
+      P.chip(ctx, 'maturing zone ↓', { x: zoneFig.map(788, 0)[0], y: zoneFig.map(0, 0)[1] - 30, t0: at(ctx, 'thinner', 0), size: 30, bg: 'var(--red-soft)' });
+    } else {
+      ctx.anchor(shot.id + '.prolif', 300, 900);
+      ctx.anchor(shot.id + '.hyper', 780, 900);
     }
     return {};
   },
 
-  // ----------------------------------------------------------------- SUMMARY
+  // ================================================================= SUMMARY
   summary(ctx, shot) {
-    head(ctx, { title: 'Every step,\nhit.', sub: 'What NSAIDs touched', subColor: 'var(--ink)' });
-    const steps = [
-      ['divide', 'cell division ↓', 'var(--red)'],
-      ['signal', 'PGE2 / PGI2 ↓', 'var(--red)'],
-      ['erk', 'IGF-1 → ERK ↓', 'var(--red)'],
-      ['death', 'more cell death', 'var(--red)'],
-      ['mature', 'maturing → bone ↓', 'var(--red)'],
-    ];
-    steps.forEach((s, i) => {
-      const t0 = shot.start + 0.3 + i * 0.26;
-      const y = 520 + i * 150;
-      P.card(ctx, { x: 150, y: y - 56, w: 780, h: 112, t0, radius: 26 });
-      P.label(ctx, s[1], { x: 210, y, t0: t0 + 0.05, align: 'left', size: 48, weight: 700, color: 'var(--ink)' });
-      // red cross mark
-      const k = spring((ctx.t - t0 - 0.1) * 1.3);
-      if (k > 0) ctx.svg('over', `<g transform="translate(840 ${y}) scale(${r1(Math.min(1, k))})"><circle r="34" fill="var(--red-soft)"/><path d="M-14 -14 L14 14 M14 -14 L-14 14" stroke="var(--red)" stroke-width="7" stroke-linecap="round"/></g>`);
+    head(ctx, { title: 'Every step,\nhit.', sub: 'What NSAIDs touched in these studies', subColor: 'var(--ink-2)' });
+    const rows = ['cells divide ↓', 'PGE2 / PGI2 ↓', 'IGF-1 → ERK ↓', 'more cells die', 'cartilage → bone ↓'];
+    rows.forEach((txt, i) => {
+      const t0 = shot.start + 0.25 + i * 0.22;
+      const y = 560 + i * 150;
+      P.card(ctx, { x: 120, y: y - 56, w: 840, h: 112, t0, radius: 26 });
+      P.label(ctx, txt, { x: 180, y, t0: t0 + 0.04, align: 'left', size: 50, weight: 800, font: 'Bricolage' });
+      const k = spring((ctx.t - t0 - 0.12) * 1.3);
+      if (k > 0) ctx.svg('over', `<g transform="translate(880 ${y}) scale(${r1(Math.min(1, k))})"><circle r="34" fill="var(--red-soft)"/><path d="M-14 -14 L14 14 M14 -14 L-14 14" stroke="var(--red)" stroke-width="7" stroke-linecap="round"/></g>`);
     });
     return {};
   },
 
-  // ----------------------------------------------------------------- TAKE
+  // ================================================================= MY TAKE
   take(ctx, shot) {
-    head(ctx, { title: 'But be\nreal.', sub: 'My honest take', subColor: 'var(--green)' });
-    const points = [
-      ['🐭', 'Animal & cell studies', shot.start + 0.3],
-      ['💉', 'Mostly long, daily dosing', shot.start + 1.0],
-      ['✅', "Short normal course?\nProbably fine", ctx.mark('probably') ? ctx.mark('probably') - 0.4 : shot.start + 2.2],
+    head(ctx, { title: 'My honest\ntake.', sub: 'Before you panic', subColor: 'var(--green)' });
+    const items = [
+      ['🐭', 'Animal & cell studies', at(ctx, 'studies', -0.2, shot.start + 0.4), 'var(--card)'],
+      ['📅', 'Mostly long, daily dosing', at(ctx, 'studies', 0.9, shot.start + 1.4), 'var(--card)'],
+      ['✅', 'Short course, normal dose:\nprobably fine', at(ctx, 'short', -0.1, shot.start + 2.4), 'var(--green-soft)'],
     ];
-    points.forEach((p, i) => {
-      const y = 560 + i * 230;
-      P.card(ctx, { x: 120, y: y - 80, w: 840, h: 190, t0: p[2], radius: 30, bg: i === 2 ? 'var(--green-soft)' : 'var(--card)' });
-      ctx.html('over', `<div style="position:absolute;left:170px;top:${y}px;font-size:76px;transform:translateY(-50%);opacity:${r1(vis(ctx.t, p[2] + 0.1))}">${p[0]}</div>`);
-      p[1].split('\n').forEach((l, j) => {
-        P.label(ctx, l, { x: 300, y: y - (p[1].includes('\n') ? 26 : 0) + j * 52, t0: p[2] + 0.15, align: 'left', size: 44, weight: 700 });
-      });
+    items.forEach(([emo, txt, t0, bg], i) => {
+      const y = 600 + i * 240;
+      P.card(ctx, { x: 100, y: y - 92, w: 880, h: 184, t0, radius: 30, bg });
+      ctx.html('over', `<div class="emoji" style="position:absolute;left:150px;top:${y}px;font-size:80px;transform:translateY(-50%);opacity:${r1(vis(ctx.t, t0 + 0.08))}">${emo}</div>`);
+      const lines = txt.split('\n');
+      lines.forEach((l, j) => P.label(ctx, l, { x: 270, y: y + (j - (lines.length - 1) / 2) * 56, t0: t0 + 0.1, align: 'left', size: 46, weight: 800, font: 'Bricolage' }));
     });
     return {};
   },
 
-  // ----------------------------------------------------------------- TWIST
+  // ================================================================= TWIST
   twist(ctx, shot) {
-    head(ctx, { title: 'Plot twist.', sub: 'Flurbiprofen · young rats', subColor: 'var(--green)', year: '1989' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.2, Infinity, 300);
-    // same NSAID class, opposite result: growth UP
-    P.pill(ctx, 'flurbiprofen', { cx: 250, cy: 760, size: 200 * Math.min(1, spring((ctx.local - 0.2) * 1.3)), rot: -8, key: 'tw-pill' });
-    P.label(ctx, 'Flurbiprofen', { x: 250, y: 900, t0: shot.start + 0.3, size: 40, weight: 700 });
-    P.chip(ctx, 'also an NSAID', { x: 250, y: 965, t0: shot.start + 0.5, size: 28, cls: 'ink' });
-    // big up-arrow for bone growth
-    const up = prog(ctx, 'boosted', 0.7);
-    const barH = lerp(60, 420, easeOut(up));
-    ctx.svg('under', `<g opacity="${r1(vis(ctx.t, ctx.mark('boosted') ? ctx.mark('boosted') - 0.3 : shot.start + 1))}">
-      <rect x="640" y="${r1(1120 - barH)}" width="150" height="${r1(barH)}" rx="16" fill="var(--green)" stroke="var(--ink)" stroke-width="6"/>
-    </g>`);
-    ctx.anchor(shot.id + '.arrow', 715, 1120 - barH - 60);
-    if (up > 0.2) P.arrow(ctx, [715, 1100], [715, 1120 - barH - 40], ctx.mark('boosted'), { color: 'var(--green)', width: 10, bend: 0 });
-    P.label(ctx, 'bone growth ↑', { x: 715, y: 1180, t0: ctx.mark('boosted') ?? shot.start + 1, size: 36, color: 'var(--green)', weight: 700 });
-    if (up > 0.4) P.emoji(ctx, '🐓', { x: 915, y: 620, size: 120, t0: ctx.mark('boosted') + 0.1, rot: 8 });
+    head(ctx, { title: 'Plot twist.', sub: 'Same drug class, opposite result', subColor: 'var(--green)', year: '1989' });
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    const k = spring((ctx.t - at(ctx, 'flurbi', -0.15, shot.start + 0.4)) * 1.3);
+    if (k > 0) P.pill(ctx, 'flurbiprofen', { cx: 250, cy: 760, size: 230 * Math.min(1, k), rot: -8, key: 'tw-pill' });
+    P.label(ctx, 'Flurbiprofen', { x: 250, y: 920, t0: at(ctx, 'flurbi', 0, shot.start + 0.5), size: 44, weight: 800, font: 'Bricolage' });
+    P.chip(ctx, 'also an NSAID', { x: 250, y: 990, t0: at(ctx, 'flurbi', 0.4, shot.start + 0.9), size: 30, cls: 'ink' });
+    P.sticker(ctx, 'rat', { x: 175, y: 1330, h: 215, t0: at(ctx, 'boosted', 0.3, shot.start + 1.5), key: 'tw-rat', z: 26 });
+    // growth bar shoots up on "boosted"
+    const up = easeOut(prog(ctx, 'boosted', 0.7));
+    const base = 1260, barH = lerp(150, 520, up);
+    const v = vis(ctx.t, at(ctx, 'flurbi', 0.2, shot.start + 0.8));
+    ctx.svg('under', `<g opacity="${r1(v)}"><rect x="620" y="${base - 150}" width="140" height="150" rx="16" fill="#E7E3DA" stroke="var(--ink)" stroke-width="5"/>
+      <rect x="800" y="${r1(base - barH)}" width="140" height="${r1(barH)}" rx="16" fill="var(--green)" stroke="var(--ink)" stroke-width="5"/></g>`);
+    const tb = at(ctx, 'flurbi', 0.2, shot.start + 0.8);
+    P.label(ctx, 'control', { x: 690, y: base + 40, t0: tb, size: 28, color: 'var(--ink-2)' });
+    P.label(ctx, 'flurbiprofen', { x: 870, y: base + 40, t0: tb, size: 28, color: 'var(--green)', weight: 800 });
+    ctx.anchor(shot.id + '.arrow', 870, base - barH + 40);
+    P.chip(ctx, '+30–40% growth rate', { x: 870, y: base - barH - 50, t0: at(ctx, 'boosted', 0.35), size: 32, bg: 'var(--green-soft)' });
+    P.sticker(ctx, 'chad-flex', { x: 430, y: 1335, h: 270, t0: at(ctx, 'boosted', 0.5), key: 'stk-chad', rot: 3 });
     return {};
   },
 
-  default(ctx) { return {}; },
+  default() { return {}; },
 };

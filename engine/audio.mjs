@@ -12,6 +12,17 @@ async function decode(mp3) {
 
 const idx = s => Math.max(0, Math.round(s * SR));
 
+/** Pitch-preserving speed change of a mono float buffer via ffmpeg atempo. */
+async function stretch(buf, tempo, duration) {
+  const input = Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
+  const raw = await run('ffmpeg', ['-v', 'error', '-f', 'f32le', '-ar', String(SR), '-ac', '1', '-i', 'pipe:0',
+    '-af', `atempo=${tempo}`, '-f', 'f32le', '-ar', String(SR), '-ac', '1', 'pipe:1'], { input, capture: true });
+  const out = new Float32Array(idx(duration) + SR);
+  const got = new Float32Array(raw.buffer, raw.byteOffset, Math.floor(raw.length / 4));
+  out.set(got.subarray(0, Math.min(got.length, out.length)));
+  return out;
+}
+
 /** Cuts the kept segments out of the source and butt-joins them with short ramps. */
 function applySegments(src, segments, duration) {
   const out = new Float32Array(idx(duration) + SR);
@@ -99,17 +110,18 @@ const KIT = { whoosh, tick, thud, blip, drop };
 const GAIN = { whoosh: 0.09, tick: 0.1, thud: 0.3, blip: 0.1, drop: 0.12 };
 
 export async function buildAudio(timeline, blocks, outWav) {
-  let src;
-  if (blocks.length === 1) src = await decode(blocks[0].mp3Path);
-  else {
-    const parts = await Promise.all(blocks.map(b => decode(b.mp3Path)));
-    const gap = Math.round((timeline.voice.blockGap ?? 0.18) * SR);
-    src = new Float32Array(parts.reduce((n, p) => n + p.length + gap, 0));
-    let at = 0;
-    for (const p of parts) { src.set(p, at); at += p.length + gap; }
-  }
+  // Place every block exactly where the timeline put its words.
+  const parts = await Promise.all(blocks.map(b => decode(b.mp3Path)));
+  const offs = timeline.blockOffsets ?? [0];
+  const end = Math.max(...parts.map((p, i) => idx(offs[i] ?? 0) + p.length));
+  const src = new Float32Array(end + SR);
+  parts.forEach((p, i) => {
+    const at = idx(offs[i] ?? 0);
+    for (let j = 0; j < p.length; j++) src[at + j] += p[j];
+  });
 
-  const bed = applySegments(src, timeline.segments, timeline.duration);
+  let bed = applySegments(src, timeline.segments, timeline.sourceDuration ?? timeline.duration);
+  if ((timeline.tempo ?? 1) !== 1) bed = await stretch(bed, timeline.tempo, timeline.duration);
   const mouth = lipSync(bed, timeline);
 
   // scene changes get a whoosh unless the shot opted out

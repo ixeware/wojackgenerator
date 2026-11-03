@@ -35,7 +35,8 @@ export async function renderFrames(timeline, assets, { workers = 4, frames, outD
       const page = pages[wi];
       for (let i = wi; i < total; i += workers) {
         await page.evaluate(n => window.wg.frame(n), i);
-        await page.screenshot({ path: join(outDir, `f${String(i).padStart(6, '0')}.png`), clip, animations: 'disabled' });
+        // JPEG q95: ~8× faster than PNG in Chromium, visually lossless before H.264
+        await page.screenshot({ path: join(outDir, `f${String(i).padStart(6, '0')}.jpg`), clip, type: 'jpeg', quality: 95, animations: 'disabled' });
         done++;
         if (onProgress && done % 25 === 0) onProgress(done, total);
       }
@@ -52,7 +53,7 @@ export async function renderFrames(timeline, assets, { workers = 4, frames, outD
 export async function encode(timeline, { framesDir, audioWav, out }) {
   const fps = timeline.meta.fps;
   await run('ffmpeg', ['-v', 'error', '-y',
-    '-framerate', String(fps), '-i', join(framesDir, 'f%06d.png'),
+    '-framerate', String(fps), '-i', join(framesDir, 'f%06d.jpg'),
     '-i', audioWav,
     '-map', '0:v', '-map', '1:a',
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',

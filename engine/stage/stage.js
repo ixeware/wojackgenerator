@@ -77,7 +77,10 @@ function ensureImg(key, src) {
     el.decoding = 'sync';
     el.src = src;
     el.dataset.key = key;
-    (key.startsWith('pres-') || key.startsWith('fg-') ? actorsHost() : overEl).appendChild(el);
+    // Sprites live in hosts that are never innerHTML-reset, so they persist
+    // across frames. Presenter + reaction stickers sit above the content.
+    const top = key.startsWith('pres-') || key.startsWith('fg-') || key.startsWith('stk-');
+    (top ? actorsHost() : document.getElementById('media')).appendChild(el);
     imgs.set(key, el);
   } else if (el.getAttribute('src') !== src) {
     el.src = src;
@@ -91,6 +94,11 @@ export async function setup(timeline, assets) {
   TL = timeline; A = assets;
   // a host for sprites that must sit above the SVG actor layer
   if (!document.getElementById('actors-host')) {
+    // content sprites (pills, animals, figures): above diagrams, below chips
+    const media = document.createElement('div');
+    media.id = 'media';
+    media.style.cssText = 'position:absolute;left:0;top:0;width:1080px;height:1920px;z-index:25;pointer-events:none';
+    worldEl.appendChild(media);
     const host = document.createElement('div');
     host.id = 'actors-host';
     host.style.cssText = 'position:absolute;left:0;top:0;width:1080px;height:1920px;z-index:40;pointer-events:none';
@@ -138,42 +146,44 @@ function applyCamera(cam) {
 export function frame(i) {
   const t = i / TL.meta.fps;
   const { ctx, buf, used, anchors } = makeCtx(t, i);
+  // lay out and measure with the camera neutral; it is applied at the end
+  worldEl.style.transform = 'none';
 
   // which shot are we in
   const shot = TL.shots.find(s => t >= s.start && t < s.end) ?? TL.shots.at(-1);
-  const prev = TL.shots[TL.shots.indexOf(shot) - 1];
   ctx.shot = shot;
   ctx.local = t - shot.start;
+  ctx.enter = easeInOut(clamp(ctx.local / 0.45, 0, 1));
 
-  // 1) draw the active scene (and a short cross-fade tail of the previous)
+  // 1) the scene draws content and registers named anchors
   const scene = scenes[shot.kind] || scenes.default;
-  let cam = null;
-  const trans = clamp(ctx.local / 0.45, 0, 1); // scene entrance progress
-  ctx.enter = easeInOut(trans);
   const res = scene(ctx, shot) || {};
-  cam = res.camera || null;
 
-  // 2) presenter (reads anchors the scene just registered)
-  drawPresenter(ctx, shot, anchors);
-
-  // 3) captions
-  drawCaptions(ctx);
-
-  // 4) global cue FX (screen shake)
-  const shake = shakeAt(t);
-  applyCamera(cam ? { ...cam, x: (cam.x || 0) + shake.x, y: (cam.y || 0) + shake.y } : (shake.on ? { x: shake.x, y: shake.y, scale: 1 + shake.s } : null));
-
-  // 5) progress hairline
-  buf.ui.push(progressBar(t));
-
-  // flush
+  // 2) flush content so HTML anchors have real positions, then measure them
   actorsEl.innerHTML = buf.svgUnder.join('') + buf.svgOver.join('');
-  document.getElementById('armfx').innerHTML = buf.arm.join('');
-  document.getElementById('facefx').innerHTML = buf.face.join('');
   underEl.innerHTML = buf.under.join('');
   overEl.innerHTML = buf.over.join('');
+  for (const el of overEl.querySelectorAll('[data-anchor]')) {
+    const name = el.dataset.anchor;
+    if (!name) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width > 0) anchors.set(name, [r.left + r.width / 2, r.top + r.height / 2]);
+  }
+
+  // 3) presenter (aims at the measured anchors) + captions
+  drawPresenter(ctx, shot, anchors);
+  drawCaptions(ctx);
+  buf.ui.push(progressBar(t));
+  document.getElementById('armfx').innerHTML = buf.arm.join('');
+  document.getElementById('facefx').innerHTML = buf.face.join('');
   uiEl.innerHTML = buf.ui.join('');
   for (const [key, el] of imgs) if (!used.has(key)) el.style.display = 'none';
+
+  // 4) camera: scene push-in + cue shake
+  const cam = res.camera || null;
+  const shake = shakeAt(t);
+  applyCamera(cam ? { ...cam, x: (cam.x || 0) + shake.x, y: (cam.y || 0) + shake.y }
+    : (shake.on ? { x: shake.x, y: shake.y, scale: 1 + shake.s } : null));
   return true;
 }
 
@@ -206,8 +216,8 @@ function drawPresenter(ctx, shot, anchors) {
   const spot = shot.presenterSpot || (idx % 2 ? 'right' : 'left');
   const scale = shot.presenterScale ?? 0.46;
   const spots = {
-    left: { x: 205, y: 2010 }, right: { x: 880, y: 2010 },
-    bottom: { x: 540, y: 2040 }, 'low-left': { x: 240, y: 2050 }, 'low-right': { x: 840, y: 2050 },
+    left: { x: 215, y: 2085 }, right: { x: 870, y: 2085 },
+    bottom: { x: 540, y: 2100 }, 'low-left': { x: 240, y: 2110 }, 'low-right': { x: 840, y: 2110 },
   };
   let home = spots[spot] || spots.left;
 
@@ -220,23 +230,36 @@ function drawPresenter(ctx, shot, anchors) {
   }
 
   // find an active pointing instruction
-  const pt = TL.points.find(p => t >= p.start - 0.25 && t <= p.end + 0.2);
-  let target = null, pointK = 0, lean = 0;
+  const WALK = 0.42; // seconds to dash over before the point lands
+  const pt = TL.points.find(p => t >= p.start - WALK && t <= p.end + WALK);
+  let target = null, pointK = 0, walkK = 0, lean = 0;
+  let x = home.x, y = home.y;
+  let flip = shot.presenterFlip ?? (spot === 'right');
   if (pt) {
     const a = anchors.get(pt.target);
     if (a) {
       target = { x: a[0], y: a[1] };
-      const inK = clamp((t - (pt.start - 0.22)) / 0.3, 0, 1);
-      const outK = 1 - clamp((t - pt.end) / 0.25, 0, 1);
-      pointK = Math.min(inK, outK);
-      lean = (target.x > home.x ? 1 : -1) * 0.5 * pointK;
+      // walk: ramp in before the word, back out after the hold
+      walkK = Math.min(clamp((t - (pt.start - WALK)) / WALK, 0, 1), 1 - clamp((t - pt.end) / WALK, 0, 1));
+      pointK = Math.min(clamp((t - (pt.start - 0.18)) / 0.26, 0, 1), 1 - clamp((t - pt.end) / 0.22, 0, 1));
+      // stand where the arm makes a natural ~60° reach; face the target
+      const pFlip = target.x < 470;
+      const shoulderDX = 78 * (scale / 0.46);
+      const reach = Math.max(260, Math.min(620, (home.y - 120 - target.y) * 0.55));
+      const px = clamp(pFlip ? target.x + reach + shoulderDX : target.x - reach - shoulderDX, 130, 950);
+      const e = easeInOut(walkK);
+      x = lerp(home.x, px, e);
+      // little hop while moving, lean into the direction of travel
+      const moving = Math.abs(px - home.x) > 40 && walkK > 0 && walkK < 1;
+      y = home.y - (moving ? Math.abs(Math.sin(e * Math.PI * 2)) * 34 : 0);
+      if (walkK > 0.5) flip = pFlip;
+      lean = moving ? Math.sign(px - home.x) * 0.8 : (pFlip ? -0.4 : 0.4) * pointK;
     }
   }
 
-  const flip = shot.presenterFlip ?? (spot === 'right');
   const ms = TL.mouth ? TL.mouth[Math.min(ctx.frame, TL.mouth.length - 1)] : 0;
   presenter(ctx, {
-    x: home.x, y: home.y, scale, flip, mouthState: ms,
+    x, y, scale, flip, mouthState: ms,
     point: target, pointK, lean, z: 46,
   });
   // tap pulse at the fingertip when fully pointing
@@ -244,7 +267,7 @@ function drawPresenter(ctx, shot, anchors) {
     const tip = anchors.get('presenter.finger') || (target && [target.x, target.y]);
     if (tip) {
       const pulse = (Math.sin(t * 14) + 1) / 2;
-      ctx.svg('over', `<circle cx="${r1(target.x)}" cy="${r1(target.y)}" r="${r1(18 + pulse * 10)}" fill="none" stroke="var(--red)" stroke-width="5" opacity="${r1(0.5 * pointK)}"/>`);
+      ctx.armSvg(`<circle cx="${r1(target.x)}" cy="${r1(target.y)}" r="${r1(22 + pulse * 12)}" fill="none" stroke="var(--orange)" stroke-width="6" opacity="${r1(0.75 * pointK)}"/>`);
     }
   }
 }
@@ -255,7 +278,7 @@ function drawCaptions(ctx) {
   const t = ctx.t;
   const g = TL.captions.find(c => t >= c.start - 0.04 && t < c.end + 0.14);
   if (!g) return;
-  const y = ctx.shot?.captionY ?? 1560;
+  const y = ctx.shot?.captionY ?? 1418;
   const inK = clamp((t - (g.start - 0.04)) / 0.12, 0, 1);
   const words = g.tokens.map((w, i) => {
     const wk = clamp((t - w.start) / 0.09, 0, 1);

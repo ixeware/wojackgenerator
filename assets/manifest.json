@@ -1,0 +1,343 @@
+{
+  "pills": {
+    "ibuprofen": {
+      "file": "pills/ibuprofen.png",
+      "w": 720,
+      "h": 717,
+      "label": "Ibuprofen",
+      "strength": "200 mg",
+      "ndc": "50844029108",
+      "source": "NLM C3PI (public domain)",
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc107/images/X!-L2E4EVGG8WNIJ48TEKB-JA!4TQV.PNG"
+    },
+    "ibuprofen400": {
+      "file": "pills/ibuprofen400.png",
+      "w": 720,
+      "h": 713,
+      "label": "Ibuprofen",
+      "strength": "400 mg",
+      "ndc": "53746046405",
+      "source": "NLM C3PI (public domain)",
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc12/images/8!TD7OSG-MU7KGO0!8XWB9E5NLXG8H.PNG"
+    },
+    "aspirin": {
+      "file": "pills/aspirin.png",
+      "w": 658,
+      "h": 657,
+      "label": "Aspirin",
+      "strength": "325 mg",
+      "ndc": "00536308610",
+      "source": "NLM C3PI (public domain)",
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc107/images/XTP-CFCS4ARHM46DL4B!D7RHBPQPC!.PNG"
+    },
+    "naproxen": {
+      "file": "pills/naproxen.png",
+      "w": 720,
+      "h": 717,
+      "label": "Naproxen",
+      "strength": "500 mg",
+      "ndc": "00093014701",
+      "source": "NLM C3PI (public domain)",
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc100/images/RN!3QUD7YQHLF8L5RO3LVJ!D1PMGZ7.PNG"
+    },
+    "celecoxib": {
+      "file": "pills/celecoxib.png",
+      "w": 720,
+      "h": 265,
+      "label": "Celecoxib",
+      "strength": "100 mg",
+      "ndc": "00025152031",
+      "source": "NLM C3PI (public domain)",
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc107/images/X6YCBP9ZRBPNNE3R!O54AESEWM01HB.PNG"
+    },
+    "flurbiprofen": {
+      "file": "pills/flurbiprofen.png",
+      "w": 720,
+      "h": 719,
+      "label": "Flurbiprofen",
+      "strength": "100 mg",
+      "ndc": "00093071101",
+      "source": "NLM C3PI (public domain)",
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc100/images/QSX!1DP1GM__A5_186WL6985Z_UYSJ.PNG"
+    },
+    "indomethacin": {
+      "file": "pills/indomethacin.png",
+      "w": 720,
+      "h": 264,
+      "label": "Indomethacin",
+      "strength": "50 mg",
+      "ndc": "00093402901",
+      "source": "NLM C3PI (public domain)",
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc108/images/Z2VW-3FR7UNUYL06B161TQX3DRNSFR.PNG"
+    },
+    "ketorolac": {
+      "file": "pills/ketorolac.png",
+      "w": 642,
+      "h": 637,
+      "label": "Ketorolac",
+      "strength": "10 mg",
+      "ndc": "00093031401",
+      "source": "NLM C3PI (public domain)",
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc107/images/XDYIKARS6FBEIYA67UWPAY!PCCUGC9.PNG"
+    },
+    "diclofenac": {
+      "file": "pills/diclofenac.png",
+      "w": 720,
+      "h": 713,
+      "label": "Diclofenac",
+      "strength": "75 mg",
+      "ndc": "00228255006",
+      "source": "NLM C3PI (public domain)",
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc110/images/!P73WU5I4P0OHEWNH240QJ!VWHVQ5N.PNG"
+    },
+    "piroxicam": {
+      "file": "pills/piroxicam.png",
+      "w": 720,
+      "h": 258,
+      "label": "Piroxicam",
+      "strength": "20 mg",
+      "ndc": "00093075601",
+      "source": "NLM C3PI (public domain)",
+      "url": "https://data.lhncbc.nlm.nih.gov/public/Pills/PillProjectDisc108/images/YLQFTNQDL3ZOF-S05EM6!1WIY933E3.PNG"
+    }
+  },
+  "wojaks": {
+    "crying": {
+      "file": "wojaks/crying.png",
+      "w": 618,
+      "h": 711,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/crying · CryingWojak.png"
+    },
+    "crying-glass": {
+      "file": "wojaks/crying-glass.png",
+      "w": 615,
+      "h": 758,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/crying · front_view_crying_wojak.png"
+    },
+    "nooo": {
+      "file": "wojaks/nooo.png",
+      "w": 882,
+      "h": 758,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/crying · NOOOyouCantJust.png"
+    },
+    "brainlet": {
+      "file": "wojaks/brainlet.png",
+      "w": 625,
+      "h": 590,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/brainlets · small_brain_brainlet.png"
+    },
+    "thinking": {
+      "file": "wojaks/thinking.png",
+      "w": 594,
+      "h": 597,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/brainlets · ThinkingBrainlet.png"
+    },
+    "bigbrain": {
+      "file": "wojaks/bigbrain.png",
+      "w": 344,
+      "h": 300,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/big-brain · wojak-big-brain-small-glasses.png"
+    },
+    "chad": {
+      "file": "wojaks/chad.png",
+      "w": 645,
+      "h": 773,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/chads · GrayChad.png"
+    },
+    "chad-flex": {
+      "file": "wojaks/chad-flex.png",
+      "w": 535,
+      "h": 900,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/chads · flexing_full_body_chad.png"
+    },
+    "mouse": {
+      "file": "wojaks/mouse.png",
+      "w": 476,
+      "h": 729,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/animals · mouse_wojak.png"
+    },
+    "mouse-glasses": {
+      "file": "wojaks/mouse-glasses.png",
+      "w": 305,
+      "h": 320,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/animals · mouse_with_glasses_soyjak.png"
+    },
+    "rat": {
+      "file": "wojaks/rat.png",
+      "w": 900,
+      "h": 819,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/animals · White_Rat_with_Cheese_wojak.png"
+    },
+    "rabbit": {
+      "file": "wojaks/rabbit.png",
+      "w": 399,
+      "h": 514,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/animals · rabbit_groomer.png"
+    },
+    "rooster": {
+      "file": "wojaks/rooster.png",
+      "w": 578,
+      "h": 740,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/animals · rooster_cahd.png"
+    },
+    "hand-point": {
+      "file": "wojaks/hand-point.png",
+      "w": 733,
+      "h": 612,
+      "source": "Wojak Land",
+      "url": "https://wojakland.com/wojak-pointing · wojak_hand_pointing.png"
+    }
+  },
+  "presenter": {
+    "01_idle": {
+      "file": "presenter/01_idle.png",
+      "w": 711,
+      "h": 820
+    },
+    "02_talk_small": {
+      "file": "presenter/02_talk_small.png",
+      "w": 716,
+      "h": 820
+    },
+    "03_talk_wide": {
+      "file": "presenter/03_talk_wide.png",
+      "w": 715,
+      "h": 820
+    },
+    "04_talk_o": {
+      "file": "presenter/04_talk_o.png",
+      "w": 714,
+      "h": 820
+    },
+    "05_glowing_glasses_smirk": {
+      "file": "presenter/05_glowing_glasses_smirk.png",
+      "w": 711,
+      "h": 820
+    },
+    "06_laugh": {
+      "file": "presenter/06_laugh.png",
+      "w": 712,
+      "h": 820
+    },
+    "07_surprise": {
+      "file": "presenter/07_surprise.png",
+      "w": 716,
+      "h": 820
+    },
+    "08_angry": {
+      "file": "presenter/08_angry.png",
+      "w": 718,
+      "h": 820
+    },
+    "rig": {
+      "body": "presenter/rig-body.png",
+      "arm": "presenter/rig-arm.png",
+      "hand": "presenter/rig-hand.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "pivot": [
+        796,
+        938
+      ],
+      "fingertip": [
+        1208,
+        192
+      ],
+      "wrist": [
+        995,
+        608
+      ],
+      "handOrigin": [
+        927,
+        187
+      ],
+      "handSize": [
+        304,
+        440
+      ],
+      "forearm": {
+        "width": 86,
+        "shoulderWidth": 112,
+        "outline": 11
+      },
+      "mouth": [
+        531,
+        733
+      ],
+      "mouthWidth": 128,
+      "bottom": 1198,
+      "note": "Glasses wojak supplied with the original NSAIDs project; split into body / arm / hand for aiming."
+    }
+  },
+  "figures": {
+    "caron-length": {
+      "file": "figures/caron-length.png",
+      "w": 1204,
+      "h": 571,
+      "cite": "Caron MMJ et al. J Orthop Res 2021;39:553–564 · Fig. 2B–C",
+      "license": "CC BY-NC-ND 4.0",
+      "url": "https://doi.org/10.1002/jor.24819"
+    },
+    "caron-zones": {
+      "file": "figures/caron-zones.png",
+      "w": 1037,
+      "h": 582,
+      "cite": "Caron MMJ et al. J Orthop Res 2021;39:553–564 · Fig. 3C–D",
+      "license": "CC BY-NC-ND 4.0",
+      "url": "https://doi.org/10.1002/jor.24819"
+    },
+    "caron-histo": {
+      "file": "figures/caron-histo.png",
+      "w": 1062,
+      "h": 232,
+      "cite": "Caron MMJ et al. J Orthop Res 2021;39:553–564 · Fig. 3E (Safranin O)",
+      "license": "CC BY-NC-ND 4.0",
+      "url": "https://doi.org/10.1002/jor.24819"
+    },
+    "janssen-front": {
+      "file": "figures/janssen-front.png",
+      "w": 872,
+      "h": 272,
+      "cite": "Janssen MP et al. Eur Cell Mater 2017;34:202–216 · Fig. 4A",
+      "license": "eCM open access",
+      "url": "https://doi.org/10.22203/eCM.v034a13"
+    },
+    "janssen-table": {
+      "file": "figures/janssen-table.png",
+      "w": 524,
+      "h": 108,
+      "cite": "Janssen MP et al. Eur Cell Mater 2017;34:202–216 · Fig. 4B",
+      "license": "eCM open access",
+      "url": "https://doi.org/10.22203/eCM.v034a13"
+    }
+  },
+  "fonts": {
+    "Bricolage": {
+      "file": "fonts/BricolageGrotesque[opsz,wdth,wght].ttf",
+      "license": "SIL OFL 1.1"
+    },
+    "Onest": {
+      "file": "fonts/Onest[wght].ttf",
+      "license": "SIL OFL 1.1"
+    },
+    "SourceSerif": {
+      "file": "fonts/SourceSerif4[opsz,wght].ttf",
+      "license": "SIL OFL 1.1"
+    }
+  }
+}

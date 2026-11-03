@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>wojackgenerator stage</title>
+<style>
+@font-face { font-family: 'Bricolage'; src: url('/assets/fonts/BricolageGrotesque%5Bopsz%2Cwdth%2Cwght%5D.ttf') format('truetype'); font-weight: 200 800; font-stretch: 75% 100%; }
+@font-face { font-family: 'Onest'; src: url('/assets/fonts/Onest%5Bwght%5D.ttf') format('truetype'); font-weight: 100 900; }
+@font-face { font-family: 'SourceSerif'; src: url('/assets/fonts/SourceSerif4%5Bopsz%2Cwght%5D.ttf') format('truetype'); font-weight: 200 900; }
+
+:root {
+  --paper: #F3EEE3; --paper-2: #E8E0CF;
+  --ink: #16181D; --ink-2: #3A3E46; --muted: #80858D; --hair: rgba(22, 24, 29, .12);
+  --card: #FFFFFF;
+  --red: #E5412A; --red-soft: #FBD9D2;
+  --orange: #FF7A1A; --yellow: #FFDE3B;
+  --green: #11A578; --green-soft: #D2F2E6;
+  --blue: #2F6BFF; --violet: #6B55D6; --violet-soft: #E6E1FB;
+  --cart: #CFE0F6; --cart-deep: #8FB4E8; --bone: #F2E4C7; --bone-deep: #CDB58A; --nucleus: #5B43C9;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--paper); }
+body { font-family: 'Onest', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
+#stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; background: var(--paper); }
+#bg { position: absolute; inset: 0; }
+#world { position: absolute; inset: 0; transform-origin: 540px 800px; }
+#under, #over, #actors { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+#under { z-index: 10; } #actors { z-index: 20; pointer-events: none; } #over { z-index: 30; }
+#ui { position: absolute; inset: 0; z-index: 100; }
+.spr { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; display: none; }
+.abs { position: absolute; }
+.disp { font-family: 'Bricolage', sans-serif; font-weight: 800; font-stretch: 88%; letter-spacing: -0.01em; }
+.serif { font-family: 'SourceSerif', serif; }
+.emoji { font-family: 'Noto Color Emoji', sans-serif; }
+
+/* brutal card: the house style for anything the narrator explains */
+.card { position: absolute; background: var(--card); border: 5px solid var(--ink); border-radius: 34px;
+  box-shadow: 10px 12px 0 var(--ink); }
+.chip { position: absolute; display: inline-flex; align-items: center; gap: 12px; white-space: nowrap;
+  font: 700 34px/1 'Onest'; padding: 14px 22px 15px; border-radius: 999px; border: 4px solid var(--ink);
+  background: var(--card); box-shadow: 5px 6px 0 var(--ink); }
+.chip.ink { background: var(--ink); color: #fff; }
+.label { position: absolute; font: 700 32px/1.05 'Onest'; letter-spacing: .01em; white-space: nowrap; }
+.label.up { text-transform: uppercase; letter-spacing: .06em; font-size: 26px; color: var(--ink-2); }
+
+/* PubMed-style citation: deliberately quiet next to the loud cards */
+.cite { position: absolute; background: #fff; border-radius: 30px; padding: 34px 38px 32px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 24px 50px -20px rgba(22,24,29,.42), 0 0 0 1px rgba(22,24,29,.08); }
+.cite .t { font-family: 'SourceSerif', serif; font-weight: 700; color: #1F2328; letter-spacing: -0.005em; }
+.cite .m { font: 500 27px/1.3 'Onest'; color: #6E737B; margin-top: 18px; }
+.cite .src { font: 700 21px/1 'Onest'; color: #3263C9; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 18px; display: flex; gap: 10px; align-items: center; }
+.cite .q { margin-top: 24px; padding: 22px 24px; border-radius: 18px; background: #F5F6F8; font: 500 34px/1.36 'SourceSerif'; color: #2A2E35; }
+.hl { border-radius: 8px; padding: 0 6px; margin: 0 -6px; }
+
+/* captions */
+#cap { position: absolute; left: 50px; right: 50px; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline;
+  column-gap: 18px; row-gap: 4px; text-align: center; }
+#cap .w { position: relative; font-family: 'Bricolage'; font-weight: 800; font-stretch: 90%; font-size: 80px; line-height: 1.04;
+  color: var(--ink); letter-spacing: -0.012em; paint-order: stroke fill; -webkit-text-stroke: 14px var(--paper); }
+#cap .w i { position: absolute; left: -12px; right: -12px; top: 8%; bottom: 0%; border-radius: 14px; z-index: -1; font-style: normal; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg"></div>
+  <div id="world">
+    <div id="under"></div>
+    <div id="over"></div>
+    <svg id="actors" viewBox="0 0 1080 1920" width="1080" height="1920"></svg>
+  </div>
+  <div id="ui"></div>
+</div>
+<script type="module" src="./stage.js"></script>
+</body>
+</html>

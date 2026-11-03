@@ -1,0 +1,17 @@
+{
+  "name": "wojackgenerator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Meme-explainer video engine: ElevenLabs narration, word-anchored timeline, Chromium/SVG renderer, wojak presenter rig.",
+  "scripts": {
+    "assets": "node tools/fetch-assets.mjs && node tools/prepare-assets.mjs",
+    "build": "node engine/cli.mjs build episodes/nsaids-growth-plates.json",
+    "preview": "node engine/cli.mjs preview episodes/nsaids-growth-plates.json",
+    "voice": "node engine/cli.mjs voice episodes/nsaids-growth-plates.json"
+  },
+  "dependencies": {
+    "playwright": "1.63.0",
+    "sharp": "^0.34.5"
+  }
+}

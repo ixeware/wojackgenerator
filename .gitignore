@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.*
+*.key
+# render intermediates
+cache/frames/
+cache/final.wav
+dist/frames/
+dist/*.wav
+dist/tmp/
+dist/preview*.jpg
+dist/timeline.json
+assets/_raw/
+*.log

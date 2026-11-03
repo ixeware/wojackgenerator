@@ -1,0 +1,375 @@
+{
+  "meta": {
+    "id": "nsaids-growth-plates",
+    "title": "How ibuprofen makes you a dwarf 💀",
+    "lang": "en"
+  },
+  "fps": 30,
+  "width": 1080,
+  "height": 1920,
+  "voice": {
+    "provider": "elevenlabs",
+    "id": "JBFqnCBsd6RMkjVDRZzb",
+    "name": "George",
+    "model": "eleven_v4",
+    "speed": 1.14,
+    "stability": 0.38,
+    "similarity": 0.8,
+    "blockGap": 0.2,
+    "tighten": {
+      "maxGap": 0.14,
+      "sentenceGap": 0.24,
+      "lead": 0.04,
+      "tail": 0.6
+    }
+  },
+  "script": [
+    "These pills made baby mice into dwarfs. Not clickbait: dwarfism is the actual word in the paper.",
+    "Ibuprofen, aspirin, naproxen. They all block an enzyme called COX. COX makes prostaglandins, and prostaglandins do way more than pain.",
+    "Your bones get longer in one place: the growth plate. A strip of cartilage where cells divide, swell up, and get replaced by bone.",
+    "In twenty fifteen, researchers found this cartilage is packed with COX two, and IGF one pushes it even higher. Block COX, and the cells stop dividing. ERK signalling drops. Add PGE2 or prostacyclin back, and the signal returns. Same paper: inject these drugs into young mice, and you get dwarfism.",
+    "Twenty oh six. Rat growth plate cells. Indomethacin, ketorolac, diclofenac, piroxicam. Division down. Cell cycle frozen. Cells dying. And adding prostaglandins back did not save them. So part of this isn't even about COX. Nobody fully knows why.",
+    "Twenty eleven: COX two works with BMP2 to make cartilage cells mature into bone. Block COX two, and that step stalls.",
+    "Twenty seventeen: young rabbits, twenty five days of celecoxib. The mineralisation front in the femur fell behind.",
+    "Twenty twenty one: growing mice, ten weeks of naproxen. Shorter shin bones. Shorter thigh bones. The dividing zone got thicker, the maturing zone got thinner.",
+    "So NSAIDs can hit almost every step of bone growth. But here's my take: these are animal and cell studies, mostly with long daily dosing. A short course at normal doses probably won't shrink you. And plot twist: flurbiprofen, also an NSAID, boosted bone growth in young rats."
+  ],
+  "captionRewrites": [
+    [
+      "\\bCOX two\\b",
+      "COX-2"
+    ],
+    [
+      "\\bIGF one\\b",
+      "IGF-1"
+    ],
+    [
+      "\\bBMP2\\b",
+      "BMP-2"
+    ],
+    [
+      "\\bTwenty oh six\\b",
+      "2006"
+    ],
+    [
+      "\\b[Tt]wenty fifteen\\b",
+      "2015"
+    ],
+    [
+      "\\bTwenty eleven\\b",
+      "2011"
+    ],
+    [
+      "\\bTwenty seventeen\\b",
+      "2017"
+    ],
+    [
+      "\\bTwenty twenty one\\b",
+      "2021"
+    ],
+    [
+      "\\btwenty five days\\b",
+      "25 days"
+    ],
+    [
+      "\\bten weeks\\b",
+      "10 weeks"
+    ]
+  ],
+  "emphasis": [
+    "dwarfs",
+    "dwarfism",
+    "dwarfism.",
+    "cox",
+    "prostaglandins",
+    "growth",
+    "plate",
+    "dividing",
+    "frozen",
+    "dying",
+    "stalls",
+    "shorter",
+    "thicker",
+    "thinner",
+    "boosted",
+    "flurbiprofen"
+  ],
+  "captions": {
+    "maxWords": 4,
+    "maxChars": 24
+  },
+  "marks": {
+    "pills": "@pills", "mice": "@mice", "dwarfs": "@dwarfs", "clickbait": "@clickbait", "actual": "@actual",
+    "ibuprofen": "@ibuprofen", "aspirin": "@aspirin", "naproxen1": "@naproxen#1", "enzyme": "@enzyme",
+    "cox1": "@cox#1", "prostaglandins": "@prostaglandins#1", "pain": "@pain",
+    "growthPlace": "@place", "plate": "@plate", "divide": "@divide", "swell": "@swell", "replaced": "@replaced",
+    "packed": "@packed", "coxtwo2015": "@cox#2", "igf": "@igf", "block2015": "@block#1", "stop": "@stop",
+    "erk": "@erk", "add2015": "@add", "returns": "@returns", "inject": "@inject", "miceDwarf": "@dwarfism#2",
+    "rat2006": "@rat", "indo": "@indomethacin", "keto": "@ketorolac", "diclo": "@diclofenac", "piro": "@piroxicam",
+    "down2006": "@division", "frozen": "@frozen", "dying": "@dying", "notsave": "@save", "nobody": "@nobody",
+    "coxworks": "@works", "bmp": "@bmp2", "mature": "@mature", "block2011": "@block#2", "stalls": "@stalls",
+    "rabbits": "@rabbits", "cele25": "@celecoxib", "front": "@front", "behind": "@behind",
+    "naproxen10": "@naproxen#3", "shin": "@shin", "thigh": "@thigh", "thicker": "@thicker", "thinner": "@thinner",
+    "every": "@every", "take": "@take", "studies": "@studies", "short": "@short", "probably": "@probably",
+    "twist": "@twist", "flurbi": "@flurbiprofen", "boosted": "@boosted"
+  },
+  "papers": {
+    "hutchison2015": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/25406016/",
+      "quote": "Inhibition of COX activity in young mice by ip injections of NSAIDs causes dwarfism.",
+      "highlight": "dwarfism"
+    },
+    "chang2006": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/17045721/"
+    },
+    "welting2011": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/22183916/"
+    },
+    "janssen2017": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/29039630/"
+    },
+    "caron2021": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/32740982/"
+    },
+    "li1989": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/2660884/"
+    }
+  },
+  "shots": [
+    {
+      "id": "hook",
+      "kind": "hook",
+      "at": 0,
+      "sfx": false
+    },
+    {
+      "id": "proof",
+      "kind": "paper",
+      "at": "@clickbait-0.15",
+      "paper": "hutchison2015"
+    },
+    {
+      "id": "cox",
+      "kind": "cox",
+      "at": "@ibuprofen"
+    },
+    {
+      "id": "plate",
+      "kind": "plate",
+      "at": "@your"
+    },
+    {
+      "id": "s2015",
+      "kind": "pathway",
+      "at": "@twenty-0.28",
+      "paper": "hutchison2015"
+    },
+    {
+      "id": "mice2015",
+      "kind": "mice",
+      "at": "@same"
+    },
+    {
+      "id": "s2006",
+      "kind": "cells",
+      "at": "@twenty#2",
+      "paper": "chang2006"
+    },
+    {
+      "id": "s2011",
+      "kind": "mature",
+      "at": "@twenty#3",
+      "paper": "welting2011"
+    },
+    {
+      "id": "s2017",
+      "kind": "rabbit",
+      "at": "@twenty#4",
+      "paper": "janssen2017"
+    },
+    {
+      "id": "s2021",
+      "kind": "naproxen",
+      "at": "@twenty#6",
+      "paper": "caron2021"
+    },
+    {
+      "id": "sum",
+      "kind": "summary",
+      "at": "@so#2"
+    },
+    {
+      "id": "take",
+      "kind": "take",
+      "at": "@here's"
+    },
+    {
+      "id": "twist",
+      "kind": "twist",
+      "at": "@plot",
+      "paper": "li1989"
+    }
+  ],
+  "points": [
+    {
+      "at": "@pills",
+      "target": "hook.pill",
+      "hold": 1.0
+    },
+    {
+      "at": "@dwarfs",
+      "target": "hook.mouse",
+      "hold": 1.3
+    },
+    {
+      "at": "@actual",
+      "target": "proof.highlight",
+      "until": "@ibuprofen-0.2"
+    },
+    {
+      "at": "@enzyme",
+      "target": "cox.enzyme",
+      "hold": 1.3
+    },
+    {
+      "at": "@growth#1",
+      "target": "plate.band",
+      "hold": 1.4
+    },
+    {
+      "at": "@packed",
+      "target": "s2015.cox",
+      "hold": 1.2
+    },
+    {
+      "at": "@stop",
+      "target": "s2015.division",
+      "hold": 1.3
+    },
+    {
+      "at": "@returns",
+      "target": "s2015.erk",
+      "hold": 1.0
+    },
+    {
+      "at": "@dwarfism#2",
+      "target": "mice2015.small",
+      "hold": 1.2
+    },
+    {
+      "at": "@dying",
+      "target": "s2006.dish",
+      "hold": 1.2
+    },
+    {
+      "at": "@stalls",
+      "target": "s2011.cell",
+      "hold": 1.0
+    },
+    {
+      "at": "@front",
+      "target": "s2017.front",
+      "hold": 1.6
+    },
+    {
+      "at": "@shin",
+      "target": "s2021.tibia",
+      "hold": 1.0
+    },
+    {
+      "at": "@thigh",
+      "target": "s2021.femur",
+      "hold": 1.0
+    },
+    {
+      "at": "@thicker",
+      "target": "s2021.prolif",
+      "hold": 0.9
+    },
+    {
+      "at": "@thinner",
+      "target": "s2021.hyper",
+      "hold": 1.0
+    },
+    {
+      "at": "@boosted",
+      "target": "twist.arrow",
+      "hold": 1.6
+    }
+  ],
+  "cues": [
+    {
+      "at": "@dwarfs",
+      "sound": "thud",
+      "fx": "shake"
+    },
+    {
+      "at": "@actual",
+      "sound": "tick"
+    },
+    {
+      "at": "@block#2",
+      "sound": "drop"
+    },
+    {
+      "at": "@stop",
+      "sound": "drop"
+    },
+    {
+      "at": "@returns",
+      "sound": "blip"
+    },
+    {
+      "at": "@dwarfism#2",
+      "sound": "thud",
+      "gain": 0.7,
+      "fx": "shake"
+    },
+    {
+      "at": "@indomethacin",
+      "sound": "tick"
+    },
+    {
+      "at": "@ketorolac",
+      "sound": "tick"
+    },
+    {
+      "at": "@diclofenac",
+      "sound": "tick"
+    },
+    {
+      "at": "@piroxicam",
+      "sound": "tick"
+    },
+    {
+      "at": "@dying",
+      "sound": "drop"
+    },
+    {
+      "at": "@stalls",
+      "sound": "drop",
+      "gain": 0.8
+    },
+    {
+      "at": "@behind",
+      "sound": "drop",
+      "gain": 0.8
+    },
+    {
+      "at": "@shin",
+      "sound": "tick"
+    },
+    {
+      "at": "@thigh",
+      "sound": "tick"
+    },
+    {
+      "at": "@probably",
+      "sound": "tick"
+    },
+    {
+      "at": "@boosted",
+      "sound": "blip"
+    }
+  ]
+}

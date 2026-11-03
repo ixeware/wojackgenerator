@@ -16,9 +16,9 @@ function head(ctx, o) {
   const { title, sub, t0 = ctx.shot.start, color = 'var(--ink)', subColor = 'var(--red)', year } = o;
   const lines = title.split('\n');
   lines.forEach((l, i) => {
-    const lv = vis(ctx.t, t0 + i * 0.07, Infinity, 0.28);
+    const lv = vis(ctx.t, t0 - 0.03 + i * 0.05, Infinity, 0.16);
     if (lv <= 0) return;
-    ctx.html('over', `<div class="disp" style="position:absolute;left:64px;top:${TITLE_Y + i * 92}px;font-size:86px;line-height:1.02;white-space:nowrap;color:${color};opacity:${r1(lv)};transform:translateY(${r1((1 - lv) * 16)}px)">${l}</div>`);
+    ctx.html('over', `<div class="disp" style="position:absolute;left:64px;top:${TITLE_Y + i * 92}px;font-size:86px;line-height:1.02;white-space:nowrap;color:${color};opacity:${r1(lv)};transform:translateY(${r1((1 - lv) * 10)}px)">${l}</div>`);
   });
   if (year) P.chip(ctx, year, { x: W - 64, y: TITLE_Y + 46, t0: t0 + 0.1, align: 'right', cls: 'ink', size: 34 });
   if (sub) {
@@ -129,7 +129,7 @@ export const scenes = {
   // ================================================================= 2015 PATHWAY
   pathway(ctx, shot) {
     head(ctx, { title: 'The growth\nsignal.', year: '2015' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.03, Infinity, DOCK_Y);
     const cx = 330, Y = { cox: 720, pg: 940, erk: 1160 };
     const blocked = prog(ctx, 'block2015', 0.45), stopped = prog(ctx, 'stop', 0.4);
     const rescue = prog(ctx, 'add2015', 0.6), back = prog(ctx, 'returns', 0.4);
@@ -199,7 +199,7 @@ export const scenes = {
   // ================================================================= 2006 CELLS
   cells(ctx, shot) {
     head(ctx, { title: 'Cells in\na dish.', year: '2006' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.03, Infinity, DOCK_Y);
     // the four NSAIDs, each lands as it is named
     const drugs = [['indomethacin', 'Indomethacin', 'indo', 120, 610], ['ketorolac', 'Ketorolac', 'keto', 580, 610],
       ['diclofenac', 'Diclofenac', 'diclo', 120, 705], ['piroxicam', 'Piroxicam', 'piro', 580, 705]];
@@ -219,7 +219,7 @@ export const scenes = {
     const clear = at(ctx, 'notsave', -1.0);
     P.stamp(ctx, 'division ↓', { x: 210, y: 860, t0: at(ctx, 'down2006', 0), t1: clear, size: 44, rot: -8 });
     P.stamp(ctx, 'cycle frozen', { x: 870, y: 860, t0: at(ctx, 'frozen', 0), t1: clear, size: 40, rot: 7, color: 'var(--blue)' });
-    P.stamp(ctx, 'cells dying', { x: 540, y: 1325, t0: at(ctx, 'dying', 0), t1: clear, size: 46, rot: -3 });
+    P.stamp(ctx, 'cells dying', { x: 810, y: 1320, t0: at(ctx, 'dying', 0), t1: clear, size: 46, rot: -3 });
     // "adding prostaglandins back did not save them"
     P.chip(ctx, '+ prostaglandins', { x: 540, y: 790, t0: at(ctx, 'notsave', -0.9), size: 32, bg: 'var(--green-soft)' });
     P.scribble(ctx, 540, 790, 190, 46, at(ctx, 'notsave', 0.1), { color: 'var(--red)', seed: 7, width: 9 });
@@ -232,7 +232,7 @@ export const scenes = {
   // ================================================================= 2011 MATURE
   mature(ctx, shot) {
     head(ctx, { title: 'Growing up\nstalls.', year: '2011' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.03, Infinity, DOCK_Y);
     const v0 = vis(ctx.t, shot.start + 0.3);
     const blocked = after(ctx, 'block2011', 0);
     D.node(ctx, { cx: 290, cy: 720, r: 84, text: 'COX-2', state: blocked ? -1 : 1, color: 'var(--violet)', v: v0, size: 38 });
@@ -259,7 +259,7 @@ export const scenes = {
   // ================================================================= 2017 RABBITS
   rabbit(ctx, shot) {
     head(ctx, { title: '25 days.\nRabbits.', year: '2017' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.03, Infinity, DOCK_Y);
     P.sticker(ctx, 'rabbit', { x: 200, y: 930, h: 330, t0: at(ctx, 'rabbits', -0.1, shot.start + 0.5), key: 'rb', z: 26 });
     P.pill(ctx, 'celecoxib', { cx: 455, cy: 660, size: 230 * Math.min(1, spring((ctx.t - at(ctx, 'cele25', -0.3, shot.start + 1)) * 1.4)), rot: -12, key: 'rb-cele' });
     // 25 daily doses fill in
@@ -283,7 +283,7 @@ export const scenes = {
   // ================================================================= 2021 NAPROXEN
   naproxen(ctx, shot) {
     head(ctx, { title: '10 weeks.\nShorter bones.', year: '2021' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.03, Infinity, DOCK_Y);
     // ten weekly ticks
     const weeks = Math.round(prog(ctx, 'naproxen10', 0.9, -0.3) * 10);
     P.ticks(ctx, { x: 160, y: 588, n: 10, filled: weeks, size: 52, gap: 26, color: 'var(--red)', t0: shot.start + 0.4 });
@@ -352,7 +352,7 @@ export const scenes = {
   // ================================================================= TWIST
   twist(ctx, shot) {
     head(ctx, { title: 'Plot twist.', sub: 'Same drug class, opposite result', subColor: 'var(--green)', year: '1989' });
-    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.15, Infinity, DOCK_Y);
+    P.citeDock(ctx, ctx.TL.papers[shot.paper], shot.start + 0.03, Infinity, DOCK_Y);
     const k = spring((ctx.t - at(ctx, 'flurbi', -0.15, shot.start + 0.4)) * 1.3);
     if (k > 0) P.pill(ctx, 'flurbiprofen', { cx: 250, cy: 760, size: 230 * Math.min(1, k), rot: -8, key: 'tw-pill' });
     P.label(ctx, 'Flurbiprofen', { x: 250, y: 920, t0: at(ctx, 'flurbi', 0, shot.start + 0.5), size: 44, weight: 800, font: 'Bricolage' });

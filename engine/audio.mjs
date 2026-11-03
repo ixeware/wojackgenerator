@@ -12,6 +12,19 @@ async function decode(mp3) {
 
 const idx = s => Math.max(0, Math.round(s * SR));
 
+/** ffmpeg run that returns stderr (where loudnorm prints its JSON). */
+async function runStderr(args, input) {
+  const { spawn } = await import('node:child_process');
+  return new Promise((resolve, reject) => {
+    const p = spawn('ffmpeg', args, { stdio: ['pipe', 'ignore', 'pipe'] });
+    const err = [];
+    p.stderr.on('data', d => err.push(d));
+    p.on('error', reject);
+    p.on('close', code => code === 0 ? resolve(Buffer.concat(err).toString()) : reject(new Error('ffmpeg loudnorm probe failed')));
+    p.stdin.end(input);
+  });
+}
+
 /** Pitch-preserving speed change of a mono float buffer via ffmpeg atempo. */
 async function stretch(buf, tempo, duration) {
   const input = Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
@@ -144,9 +157,18 @@ export async function buildAudio(timeline, blocks, outWav) {
     const v = Math.max(-1, Math.min(1, bed[i] * norm));
     pcm.writeInt16LE(Math.round(v * 32767), i * 2);
   }
+  // Two-pass loudnorm to -14 LUFS (shorts platforms' reference level):
+  // pass 1 measures, pass 2 applies a linear gain so dynamics are untouched.
+  const target = 'I=-14:TP=-1.5:LRA=11';
+  // gentle voice compression first so peaks (SFX hits) don't cap the gain
+  const pre = 'highpass=f=70,acompressor=threshold=0.1:ratio=3:attack=5:release=110:makeup=1';
+  const probe = await runStderr(['-hide_banner', '-nostats', '-f', 's16le', '-ar', String(SR), '-ac', '1', '-i', 'pipe:0',
+    '-af', `${pre},loudnorm=${target}:print_format=json`, '-f', 'null', '-'], pcm);
+  const m = JSON.parse(probe.slice(probe.lastIndexOf('{'), probe.lastIndexOf('}') + 1));
+  const second = `${pre},loudnorm=${target}:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`;
   await run('ffmpeg', ['-v', 'error', '-y', '-f', 's16le', '-ar', String(SR), '-ac', '1', '-i', 'pipe:0',
-    '-af', 'highpass=f=70,loudnorm=I=-14:TP=-1.5:LRA=11', '-ar', '48000', '-ac', '2', outWav], { input: pcm });
-  return { wav: outWav, mouth };
+    '-af', second, '-ar', '48000', '-ac', '2', outWav], { input: pcm });
+  return { wav: outWav, mouth, loudness: { measured: +m.input_i } };
 }
 
 /**

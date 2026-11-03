@@ -3,7 +3,9 @@
 // so any frame can be produced in any order — which is what lets us render in
 // parallel across workers.
 import { W, H, M, r1, clamp, lerp, easeInOut } from './lib.js';
-import { scenes } from './scenes.js';
+import { scenes as baseScenes } from './scenes.js';
+import { aqScenes } from './scenes-aqualyx.js';
+const scenes = { ...baseScenes, ...aqScenes };
 import { makePresenter } from './presenter.js';
 
 const underEl = document.getElementById('under');

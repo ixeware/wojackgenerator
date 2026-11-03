@@ -370,3 +370,6 @@ export const scenes = {
 
   default() { return {}; },
 };
+
+// shared with episode-specific scene modules
+export { head, has, after, prog, at, TITLE_Y, DOCK_Y };

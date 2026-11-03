@@ -1,0 +1,257 @@
+{
+  "meta": {
+    "id": "aqualyx-fat-dissolving",
+    "title": "This shot melts fat 💀",
+    "lang": "en"
+  },
+  "fps": 30,
+  "width": 1080,
+  "height": 1920,
+  "voice": {
+    "provider": "elevenlabs",
+    "id": "JBFqnCBsd6RMkjVDRZzb",
+    "name": "George",
+    "model": "eleven_v4",
+    "speed": 1.14,
+    "stability": 0.38,
+    "similarity": 0.8,
+    "blockGap": 0.1,
+    "tighten": {
+      "maxGap": 0.09,
+      "sentenceGap": 0.15,
+      "lead": 0.03,
+      "tail": 0.7
+    },
+    "tempo": 1.1
+  },
+  "script": [
+    "This shot melts fat cells for good. It basically works like dish soap.",
+    "Aqualyx is deoxycholate, a bile acid your gut uses to break up fat. In fat, it rips cells open.",
+    "In a dish, it kills every cell type tested. In your body, skin and muscle proteins soak it up. Fat has few, so fat bursts.",
+    "Kybella, the FDA-approved version, shrank double chins in about two thirds of people in two big trials. Placebo? About one in five.",
+    "The catch: days of swelling, and four percent got a temporary nerve injury. Lopsided smile.",
+    "One patient got a shot sold as Aqualyx from someone untrained: skin necrosis and painful nodules that burst open.",
+    "My take: in a clinic, on a small fat pocket, it works. From a TikTok slideshow and an insulin syringe? Hard pass."
+  ],
+  "captionRewrites": [
+    [
+      "\\bfour percent\\b",
+      "4%"
+    ]
+  ],
+  "emphasis": [
+    "melts",
+    "soap",
+    "deoxycholate",
+    "rips",
+    "kills",
+    "bursts",
+    "thirds",
+    "five",
+    "swelling",
+    "nerve",
+    "lopsided",
+    "necrosis",
+    "nodules",
+    "works",
+    "pass"
+  ],
+  "captions": {
+    "maxWords": 4,
+    "maxChars": 24
+  },
+  "marks": {
+    "melts": "@melts",
+    "soap": "@soap",
+    "deoxycholate": "@deoxycholate",
+    "bile": "@bile",
+    "fatIn": "@fat#3",
+    "rips": "@rips",
+    "kills": "@kills",
+    "body": "@body",
+    "proteins": "@proteins",
+    "soak": "@soak",
+    "bursts": "@bursts",
+    "kybella": "@kybella",
+    "thirds": "@thirds",
+    "trials": "@trials",
+    "placebo": "@placebo",
+    "five": "@five",
+    "swelling": "@swelling",
+    "nerve": "@nerve",
+    "temporary": "@temporary",
+    "lopsided": "@lopsided",
+    "sold": "@sold",
+    "untrained": "@untrained",
+    "necrosis": "@necrosis",
+    "nodules": "@nodules",
+    "burst": "@burst",
+    "clinic": "@clinic",
+    "works2": "@works#2",
+    "slideshow": "@slideshow",
+    "pass": "@pass",
+    "shrank": "@shrank"
+  },
+  "papers": {
+    "thuangtong2010": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/20482723/"
+    },
+    "refine1": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/26673433/"
+    },
+    "refine2": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27430612/"
+    },
+    "shahid2022": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/35832164/"
+    }
+  },
+  "shots": [
+    {
+      "id": "hook",
+      "kind": "aqHook",
+      "at": 0,
+      "sfx": false
+    },
+    {
+      "id": "aqWhat",
+      "kind": "aqWhat",
+      "at": "@aqualyx#1"
+    },
+    {
+      "id": "aqSelect",
+      "kind": "aqSelect",
+      "at": "@dish#2-0.35",
+      "paper": "thuangtong2010"
+    },
+    {
+      "id": "aqTrials",
+      "kind": "aqTrials",
+      "at": "@kybella-0.05",
+      "papers": [
+        "refine1",
+        "refine2"
+      ]
+    },
+    {
+      "id": "aqCatch",
+      "kind": "aqCatch",
+      "at": "@catch-0.2",
+      "paper": "refine1"
+    },
+    {
+      "id": "aqCase",
+      "kind": "aqCase",
+      "at": "@patient-0.35",
+      "paper": "shahid2022"
+    },
+    {
+      "id": "aqTake",
+      "kind": "aqTake",
+      "at": "@take-0.3"
+    }
+  ],
+  "points": [
+    {
+      "at": "@melts",
+      "target": "hook.cells",
+      "hold": 1.0
+    },
+    {
+      "at": "@deoxycholate",
+      "target": "aqWhat.molecule",
+      "hold": 0.9
+    },
+    {
+      "at": "@rips",
+      "target": "aqWhat.cell",
+      "hold": 0.9
+    },
+    {
+      "at": "@proteins",
+      "target": "aqSelect.skin",
+      "hold": 0.9
+    },
+    {
+      "at": "@bursts",
+      "target": "aqSelect.fat",
+      "hold": 0.8
+    },
+    {
+      "at": "@thirds",
+      "target": "aqTrials.bar",
+      "hold": 0.9
+    },
+    {
+      "at": "@five",
+      "target": "aqTrials.placebo",
+      "hold": 0.8
+    },
+    {
+      "at": "@nerve",
+      "target": "aqCatch.nerve",
+      "hold": 1.2
+    },
+    {
+      "at": "@necrosis",
+      "target": "aqCase.stamp",
+      "hold": 0.9
+    },
+    {
+      "at": "@clinic",
+      "target": "aqTake.good",
+      "hold": 0.9
+    },
+    {
+      "at": "@slideshow",
+      "target": "aqTake.bad",
+      "hold": 1.0
+    }
+  ],
+  "cues": [
+    {
+      "at": "@soap",
+      "sound": "blip"
+    },
+    {
+      "at": "@rips",
+      "sound": "drop"
+    },
+    {
+      "at": "@kills",
+      "sound": "drop"
+    },
+    {
+      "at": "@bursts",
+      "sound": "thud",
+      "gain": 0.6
+    },
+    {
+      "at": "@thirds",
+      "sound": "tick"
+    },
+    {
+      "at": "@five",
+      "sound": "tick"
+    },
+    {
+      "at": "@nerve",
+      "sound": "drop"
+    },
+    {
+      "at": "@lopsided",
+      "sound": "thud",
+      "gain": 0.7,
+      "fx": "shake"
+    },
+    {
+      "at": "@necrosis",
+      "sound": "drop"
+    },
+    {
+      "at": "@pass",
+      "sound": "thud",
+      "fx": "shake"
+    }
+  ]
+}

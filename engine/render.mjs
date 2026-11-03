@@ -18,7 +18,7 @@ async function newPage(browser, base, timeline, assets) {
   return page;
 }
 
-export async function renderFrames(timeline, assets, { workers = 4, frames, outDir, onProgress } = {}) {
+export async function renderFrames(timeline, assets, { workers = 4, frames, outDir, onProgress, format = 'png' } = {}) {
   await mkdir(outDir, { recursive: true });
   const { server, port } = await serve(ROOT);
   const base = `http://127.0.0.1:${port}`;
@@ -31,12 +31,24 @@ export async function renderFrames(timeline, assets, { workers = 4, frames, outD
     for (let w = 0; w < workers; w++) pages.push(await newPage(browser, base, timeline, assets));
     const clip = { x: 0, y: 0, width: 1080, height: 1920 };
 
+    // Lossless PNG straight from Chromium's compositor (CDP, fast zlib):
+    // ~4x faster than Playwright's PNG and, unlike JPEG, adds no per-frame
+    // block noise for the encoder to chase on the paper texture.
+    const cdps = await Promise.all(pages.map(p => p.context().newCDPSession(p)));
     async function worker(wi) {
       const page = pages[wi];
       for (let i = wi; i < total; i += workers) {
         await page.evaluate(n => window.wg.frame(n), i);
+        if (format === 'png') {
+          const { data } = await cdps[wi].send('Page.captureScreenshot', { format: 'png', optimizeForSpeed: true, clip: { ...clip, scale: 1 } });
+          await writeFile(join(outDir, `f${String(i).padStart(6, '0')}.png`), Buffer.from(data, 'base64'));
+          done++;
+          if (onProgress && done % 25 === 0) onProgress(done, total);
+          continue;
+        }
         // JPEG q95: ~8× faster than PNG in Chromium, visually lossless before H.264
-        await page.screenshot({ path: join(outDir, `f${String(i).padStart(6, '0')}.jpg`), clip, type: 'jpeg', quality: 95, animations: 'disabled' });
+        const name = join(outDir, `f${String(i).padStart(6, '0')}.${format === 'png' ? 'png' : 'jpg'}`);
+        await page.screenshot(format === 'png' ? { path: name, clip, animations: 'disabled' } : { path: name, clip, type: 'jpeg', quality: 95, animations: 'disabled' });
         done++;
         if (onProgress && done % 25 === 0) onProgress(done, total);
       }
@@ -50,13 +62,13 @@ export async function renderFrames(timeline, assets, { workers = 4, frames, outD
   return outDir;
 }
 
-export async function encode(timeline, { framesDir, audioWav, out }) {
+export async function encode(timeline, { framesDir, audioWav, out, format = 'png' }) {
   const fps = timeline.meta.fps;
   await run('ffmpeg', ['-v', 'error', '-y',
-    '-framerate', String(fps), '-i', join(framesDir, 'f%06d.jpg'),
+    '-framerate', String(fps), '-i', join(framesDir, `f%06d.${format === 'png' ? 'png' : 'jpg'}`),
     '-i', audioWav,
     '-map', '0:v', '-map', '1:a',
-    '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-b:a', '192k',
     '-shortest', '-movflags', '+faststart', out], { quiet: false });
   return out;

@@ -128,7 +128,9 @@ manifest.presenter.rig = {
   wrist: wristCut,          // where the hand sprite starts
   handOrigin: [hx, hy],     // top-left of rig-hand.png in rig space
   handSize: [handTrim.box[2], handTrim.box[3]],
-  forearm: { width: 86, shoulderWidth: 112, outline: 11 },
+  // measured on the stub at the cut: centre, axis, ink-to-ink 112 px, outline 9.5 px
+  wristCenter: [980.3, 601.3], forearmAxis: [0.414, -0.910],
+  forearm: { width: 93, shoulderWidth: 105, outline: 9.5 },
   mouth: [531, 733],        // centre of the erased mouth
   mouthWidth: 128,
   bottom: 1198,             // lowest drawn row of the bust

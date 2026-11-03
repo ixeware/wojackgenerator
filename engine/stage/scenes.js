@@ -101,11 +101,6 @@ export const scenes = {
       ctx.svg('under', `<g opacity="${r1(pv)}">${D.pg(ex - 60, 1010, 1.6, 'var(--green)')}${D.pg(ex + 60, 1030, 1.3, 'var(--green)')}</g>`);
       P.label(ctx, 'prostaglandins', { x: ex, y: 1110, t0: ctx.mark('prostaglandins') - 0.1, size: 40, color: 'var(--green)', weight: 800, font: 'Bricolage' });
     }
-    const jobs = [['😖 pain', 210], ['🌡️ fever', 470], ['🦴 bone growth', 790]];
-    jobs.forEach(([txt, x], i) => {
-      const t0 = at(ctx, 'more', -0.05 + i * 0.16);
-      P.chip(ctx, txt, { x, y: 1260, t0, size: 34, bg: i === 2 ? 'var(--yellow)' : undefined, rot: i === 2 ? -3 : 0 });
-    });
     return {};
   },
 
@@ -165,7 +160,7 @@ export const scenes = {
     ctx.svg('under', `<g opacity="${r1(v0)}">${D.cell({ x: 790, y: 960, r: 92, split: clamp(split, 0, 1), dim: divOn ? 0 : 0.8 })}</g>`);
     P.label(ctx, 'cell division', { x: 790, y: 1150, t0: shot.start + 0.4, size: 34, color: 'var(--ink-2)', weight: 700 });
     ctx.anchor(shot.id + '.division', 790, 900);
-    P.stamp(ctx, 'stopped', { x: 790, y: 960, t0: at(ctx, 'stop', 0.05), t1: at(ctx, 'returns', -0.1), size: 56, rot: -8 });
+    P.stamp(ctx, 'slowed', { x: 790, y: 960, t0: at(ctx, 'stop', 0.05), t1: at(ctx, 'returns', -0.1), size: 56, rot: -8 });
     P.stamp(ctx, 'back on', { x: 790, y: 960, t0: at(ctx, 'returns', 0), size: 54, rot: -5, color: 'var(--green)' });
     return {};
   },
@@ -290,7 +285,7 @@ export const scenes = {
     P.pill(ctx, 'naproxen', { cx: 92, cy: 614, size: 96, rot: -10, key: 'nx-pill', o: vis(ctx.t, shot.start + 0.4) });
     // real data: tibia + femur length, then growth-plate zone thickness
     const swap = at(ctx, 'thicker', -0.5);
-    const lenFig = P.figure(ctx, 'caron-length', { x: 50, y: 690, w: 980, t0: at(ctx, 'shin', -0.6, shot.start + 1.5), t1: swap });
+    const lenFig = P.figure(ctx, 'caron-length', { x: 50, y: 690, w: 980, t0: Math.min(at(ctx, 'naproxen10', 0.05, shot.start + 0.5), at(ctx, 'shin', -0.6, shot.start + 1.5)), t1: swap });
     const zoneFig = P.figure(ctx, 'caron-zones', { x: 50, y: 690, w: 980, t0: swap });
     if (lenFig.on) {
       ctx.anchor(shot.id + '.tibia', ...lenFig.map(311, 232));

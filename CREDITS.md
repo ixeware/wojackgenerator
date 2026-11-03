@@ -31,6 +31,10 @@ Bricolage Grotesque (headlines, captions) · Onest (labels) · Source Serif 4 (c
 
 ElevenLabs, voice "George", model `eleven_v4`. Generated on a free-tier key: check the plan's commercial-use terms before monetizing the video.
 
+## Background
+
+The paper texture is generated procedurally by `tools/make-paper.mjs` (no external image).
+
 ## Sound
 
 All sound effects are synthesized in `engine/audio.mjs` (no samples).

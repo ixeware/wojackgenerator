@@ -68,6 +68,9 @@ function makeCtx(t, frame) {
 function assetUrl(src) {
   return (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) ? src : '/assets/' + src;
 }
+// images created (or re-pointed) during the current frame; the frame waits for
+// them to decode so a sprite never flashes in one frame late
+let pendingDecode = [];
 function ensureImg(key, src) {
   src = assetUrl(src);
   let el = imgs.get(key);
@@ -82,8 +85,10 @@ function ensureImg(key, src) {
     const top = key.startsWith('pres-') || key.startsWith('fg-') || key.startsWith('stk-');
     (top ? actorsHost() : document.getElementById('media')).appendChild(el);
     imgs.set(key, el);
+    pendingDecode.push(el);
   } else if (el.getAttribute('src') !== src) {
     el.src = src;
+    pendingDecode.push(el);
   }
   return el;
 }
@@ -118,21 +123,34 @@ export async function setup(timeline, assets) {
   const urls = new Set();
   for (const grp of ['pills', 'wojaks', 'figures']) for (const k in A[grp]) urls.add('/assets/' + A[grp][k].file);
   for (const k of ['rig-body', 'rig-hand']) urls.add('/assets/' + A.presenter.rig[k === 'rig-body' ? 'body' : 'hand']);
+  urls.add('/assets/texture/paper.jpg');
   await Promise.all([...urls].map(u => new Promise(res => { const im = new Image(); im.onload = im.onerror = res; im.src = u; })));
   document.fonts && await document.fonts.ready;
   window.__ready = true;
 }
 
 function paintBackground() {
-  // warm paper with a faint grain + vignette, painted once
-  bgEl.innerHTML = `<svg width="1080" height="1920" viewBox="0 0 1080 1920">
-    <defs>
-      <radialGradient id="vig" cx="50%" cy="42%" r="75%"><stop offset="55%" stop-color="#F5F1E7"/><stop offset="100%" stop-color="#E7DFCF"/></radialGradient>
-      <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.03 0"/></filter>
-    </defs>
-    <rect width="1080" height="1920" fill="url(#vig)"/>
-    <rect width="1080" height="1920" filter="url(#grain)"/>
-  </svg>`;
+  // Real paper texture (tools/make-paper.mjs), larger than the frame so it can
+  // drift; a soft light wanders across it; edges are gently vignetted.
+  bgEl.innerHTML = `<img id="paper" src="/assets/texture/paper.jpg" style="position:absolute;left:0;top:0;width:1400px;height:2400px;transform-origin:700px 1200px">
+    <div id="light" style="position:absolute;inset:0"></div>
+    <div style="position:absolute;inset:0;background:radial-gradient(120% 85% at 50% 42%, rgba(0,0,0,0) 58%, rgba(92,72,40,.16) 100%)"></div>`;
+}
+
+/** Slow, smooth motion of the paper: drift, tiny rotation, breathing, light sweep. */
+function animateBackground(t) {
+  const TAU = Math.PI * 2;
+  const x = -160 + 38 * Math.sin(TAU * t / 23) + 12 * Math.sin(TAU * t / 9.3 + 1.1);
+  const y = -240 + 52 * Math.sin(TAU * t / 31 + 0.7) + 10 * Math.sin(TAU * t / 11.7);
+  // whole-pixel translation only: the encoder can then predict the texture as
+  // a pure shift (sub-pixel moves / rotation resample the grain every frame
+  // and balloon the file size)
+  const paper = document.getElementById('paper');
+  // even steps keep the 4:2:0 chroma planes aligned too
+  if (paper) paper.style.transform = `translate(${Math.round(x / 2) * 2}px,${Math.round(y / 2) * 2}px)`;
+  const lx = 540 + 330 * Math.sin(TAU * t / 17), ly = 760 + 420 * Math.sin(TAU * t / 25 + 0.6);
+  const light = document.getElementById('light');
+  if (light) light.style.background = `radial-gradient(900px 760px at ${r1(lx)}px ${r1(ly)}px, rgba(255,252,242,.42), rgba(255,252,242,0) 70%)`;
 }
 
 /** Camera: scenes may request a push-in / drift via ctx result. */
@@ -148,6 +166,7 @@ export function frame(i) {
   const { ctx, buf, used, anchors } = makeCtx(t, i);
   // lay out and measure with the camera neutral; it is applied at the end
   worldEl.style.transform = 'none';
+  animateBackground(t);
 
   // which shot are we in
   const shot = TL.shots.find(s => t >= s.start && t < s.end) ?? TL.shots.at(-1);
@@ -184,7 +203,10 @@ export function frame(i) {
   const shake = shakeAt(t);
   applyCamera(cam ? { ...cam, x: (cam.x || 0) + shake.x, y: (cam.y || 0) + shake.y }
     : (shake.on ? { x: shake.x, y: shake.y, scale: 1 + shake.s } : null));
-  return true;
+  if (!pendingDecode.length) return true;
+  const waiting = pendingDecode;
+  pendingDecode = [];
+  return Promise.all(waiting.map(el => el.decode().catch(() => {}))).then(() => true);
 }
 
 function shakeAt(t) {

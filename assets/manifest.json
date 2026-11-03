@@ -254,9 +254,9 @@
         440
       ],
       "forearm": {
-        "width": 86,
-        "shoulderWidth": 112,
-        "outline": 11
+        "width": 93,
+        "outline": 9.5,
+        "shoulderWidth": 105
       },
       "mouth": [
         531,
@@ -264,7 +264,15 @@
       ],
       "mouthWidth": 128,
       "bottom": 1198,
-      "note": "Glasses wojak supplied with the original NSAIDs project; split into body / arm / hand for aiming."
+      "note": "Glasses wojak supplied with the original NSAIDs project; split into body / arm / hand for aiming.",
+      "wristCenter": [
+        980.3,
+        601.3
+      ],
+      "forearmAxis": [
+        0.414,
+        -0.91
+      ]
     }
   },
   "figures": {

@@ -37,7 +37,8 @@ export const scenes = {
   hook(ctx, shot) {
     const lt = ctx.local;
     const hv = vis(ctx.t, 0.0, Infinity, 0.35);
-    ctx.html('over', `<div class="disp" style="position:absolute;left:62px;top:${r1(116 + (1 - hv) * 20)}px;width:960px;font-size:100px;line-height:0.98;opacity:${r1(hv)}">Can a <span style="color:var(--red)">painkiller</span><br>make you<br><span style="background:var(--yellow);padding:0 12px;border-radius:14px">shorter?</span></div>`);
+    // the episode title is the hook
+    ctx.html('over', `<div class="disp" style="position:absolute;left:62px;top:${r1(116 + (1 - hv) * 20)}px;width:960px;font-size:100px;line-height:0.98;opacity:${r1(hv)}">How <span style="color:var(--red)">ibuprofen</span><br>makes you<br>a <span style="background:var(--yellow);padding:0 12px;border-radius:14px">dwarf</span> <span class="emoji" style="font-size:88px">💀</span></div>`);
 
     // a handful of pills tumbles in
     const pills = [['aspirin', 190, 640, 160, -18], ['naproxen', 470, 620, 160, 14], ['ibuprofen', 330, 750, 270, -8]];
@@ -189,6 +190,8 @@ export const scenes = {
     if (v0 > 0) ctx.svg('over', `<line x1="170" y1="${ground - 360}" x2="980" y2="${ground - 360}" stroke="var(--ink)" stroke-width="4" stroke-dasharray="5 10" opacity="${r1(v0 * 0.7)}"/>`);
     if (shrink > 0.2) P.arrow(ctx, [930, ground - 352], [930, ground - th - 8], ctx.mark('miceDwarf') + 0.15, { color: 'var(--red)', width: 7, bend: 0 });
     P.stamp(ctx, 'dwarfism', { x: 560, y: 640, t0: at(ctx, 'miceDwarf', 0.1), size: 96, rot: -6 });
+    // reaction cameo (Wojak Land)
+    P.sticker(ctx, 'crying', { x: 925, y: 600, h: 250, t0: at(ctx, 'miceDwarf', 0.35), key: 'stk-crying', rot: 6, wiggle: 2 });
     P.chip(ctx, 'schematic · see paper for data', { x: 540, y: 1330, t0: shot.start + 0.6, size: 24, color: 'var(--muted)' });
     return {};
   },
@@ -330,6 +333,7 @@ export const scenes = {
   // ================================================================= MY TAKE
   take(ctx, shot) {
     head(ctx, { title: 'My honest\ntake.', sub: 'Before you panic', subColor: 'var(--green)' });
+    P.sticker(ctx, 'chad', { x: 900, y: 450, h: 270, t0: at(ctx, 'probably', -0.1), key: 'stk-chad-yes', rot: -3 });
     const items = [
       ['🐭', 'Animal & cell studies', at(ctx, 'studies', -0.2, shot.start + 0.4), 'var(--card)'],
       ['📅', 'Mostly long, daily dosing', at(ctx, 'studies', 0.9, shot.start + 1.4), 'var(--card)'],
